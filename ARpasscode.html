@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Use the Passcode</title>
+  
+  <meta name="keywords" content="Passcode, Password, Protected"/>
+
+<meta name="Author" content="Salmanda"/> 
+
+<meta name="revised" content="Profiler, 2/7/2025"/>
+ 
+  <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7"/>
+    
+    <meta name="mobile-web-app-capable" content="yes"/>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    
+    <meta name="msapplication-starturl" content=""/>
+    
+     <meta name="robots"
+content="noindex,nofollow"/> 
+    
+    <meta name="theme-color" content="teal"/>
+  
+  <link rel="icon" type="image" href="africaOnlineIcon.png"/>
+	 
+	 <link rel="stylesheet" type="text/css" href="file:///storage/emulated/0/projects/vlibrary/profiler.css">
+		 
+		 <link rel="stylesheet" type="text/css" href="bootstrap.min.css"/>
+		 <style>
+		 	body{
+		 		margin-top: 90px;
+		 		font-family: georgia;
+		 	}
+		 	
+		 	input{
+		 		border: 1px solid teal;
+		 		border-radius: 3px;
+		 		color : teal;
+		 	}
+		 	
+		 	#returns{
+		 	 border: 1px solid orange;
+		 		border-radius: 3px;
+		 		font-size: 13px;
+		 		margin: 4px;
+		 		color: teal;
+		 	}
+		 	
+		 	footer{
+		 				margin: 4px;
+		 				border-radius: 3px;
+		 	}
+		 </style>
+</head>
+
+<body style="text-align: center" class="salma">
+	
+  <div id="loginSection"><br>
+  	
+  	<button onclick="color(this); showAlert('Hello! This is a custom alert with sound! salmanda open everything as you wish');">Necessary Requiments to Run AR Applications</button><br>
+  	
+    <h2 style="color: teal;">Enter your Passcode to Proceed</h2>
+    
+    <input type="password" id="passcodeInput" placeholder="Enter passcode"><br><br><br>
+  	
+<button onclick="color(this);checkPasscode()">Submit</button><br><br>
+</div>
+
+  <div id="logoutSection" style="display: none;">
+  	
+    <p>You are already authenticated.</p>
+    <button onclick="logout()">Logout</button>
+  </div>
+  
+  <div id="returns">To access these services you will need to send K1000  to +265982177920, then a passcode will be sent to you use it to log in, while doing that you will be supporting our project. Good luck.</div><br>
+  	
+  	<!--custom alert box-->
+<div id="overlay"></div>
+<div id="customAlert">
+  <p style="color: orange; font-family: georgia; background: teal;border: solid orange 1px; border-radius: 6px;" id="alertMessage"></p>
+  <button style="border: 1px solid orange;" onclick="closeAlert()">OK</button>
+</div>
+
+<!-- Sound file (you can replace this with another link or base64) -->
+<audio id="alertSound" src="https://www.soundjay.com/button/beep-07.mp3" preload="auto"></audio>
+<!--end custom alert box-->
+  	
+  	 	<footer>&copy 2025 Copyright SM Technology</footer>
+
+  <script>
+    const correctPasscode = "3690030"; // Change this to your desired passcode
+    const redirectURL = "https://salmandascript.github.io/ARMagic/arMagic.html"; // URL to redirect to
+
+    // Check if user is already authenticated
+    if (localStorage.getItem("authenticated") === "true") {
+      // Show logout option
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("logoutSection").style.display = "block";
+
+      // Optionally redirect automatically
+      window.location.href = redirectURL;
+    }
+
+    function checkPasscode() {
+      const input = document.getElementById("passcodeInput").value;
+
+      if (input === correctPasscode) {
+        localStorage.setItem("authenticated", "true");
+        window.location.href = redirectURL;
+      } else {
+        alert("Incorrect passcode. Try again.");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("authenticated");
+      location.reload(); // Refresh the page
+    }
+  </script>
+  
+  <script src="file:///storage/emulated/0/projects/vlibrary/profiler.js"></script>
+</body>
+</html>
