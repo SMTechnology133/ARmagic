@@ -15,5 +15,5 @@ $("img").attr("loading", "lazy");
 });
 
 rotatingSphere=()=>{
-	open("file:///storage/emulated/0/projects/ARmagic/rotatingSphere.html");
+	open("https://smtechnology133.github.io/ARmagic/rotatingSphere.html");
 }
