@@ -14,6 +14,10 @@ $(document).ready (function(){
 $("img").attr("loading", "lazy");
 });
 
+nextARpage=()=>{
+	open("https://smtechnology133.github.io/ARmagic/rotatingSphere.html");
+}
+
 rotatingSphere=()=>{
 	open("https://smtechnology133.github.io/ARmagic/rotatingSphere.html");
 }
