@@ -26,7 +26,7 @@ content="noindex,nofollow"/>
     
     <meta name="theme-color" content="teal"/>
     
-    <link rel="icon" type="image" href="africaOnlineIcon.png"/>
+    <link rel="icon" href="https://smtechnology133.github.io/africaonline/africaOnlineIcon.png" type="image"/>
     
     <link rel="icon" type="image" href="https://smtechnology133.github.io/africaonline/africaOnlineIcon.png"/>
   
@@ -80,7 +80,7 @@ h1{
 	 	
 	 	a{
 	color: teal;
-	font-size:12px;
+	font-size:8px;
 	border-radius: 8px;
 	padding: 2px;
 	background-color: teal;
@@ -136,6 +136,20 @@ border-radius: 20px;
 padding: 1px;
 margin-top: 6px;
 }
+
+/* Center navbar links horizontally */
+.navbar-nav {
+  float: none;
+  margin: 0 auto;
+  display: table;
+  table-layout: fixed;
+}
+
+.navbar-nav > li {
+  float: none;
+  display: inline-block;
+}
+ /* Center navbar links horizontally */
 	</style>
 	
  </head>
@@ -153,7 +167,7 @@ margin-top: 6px;
             </button><br>
       <a style="color: orange; font-size: 20px;" onclick="africaOnlineHome()" class="navbar-brand">Africa Online AR</a> 
       
-      <img class="picturee" src="file:///storage/emulated/0/projects/vlibrary/africaOnlineIcon.png"/>
+      <img class="picturee" src="https://smtechnology133.github.io/africaonline/africaOnlineIcon.png"/>
     </div><br>
     
     <!-- Collection of nav links, forms, and other content for toggling -->
@@ -161,16 +175,18 @@ margin-top: 6px;
       <ul class="nav navbar-nav">
         <li><a onclick="africaOnlineHome();color(this);" style="color: orange;"><mark>🏡Home</mark></a></li>
         
-        <li><a onclick="color(this);s300();" style="background: teal;" href="#"><mark>🤖GPT-3000</mark></a></li>
+        <li><a onclick="color(this); Gemini();" style="background: teal;"><mark>🤖Gemini</mark></a></li>
         
         <li class="dropdown">
-          <a onclick="color(this)" style="color: orange; background: teal; border: solid orange 1px;" data-toggle="dropdown" class="dropdown-toggle" href="#"> <mark>📄Option<b class="caret"></b></mark></a>
+          <a onclick="color(this)" style="color: orange; background: teal; border: solid orange 1px;" data-toggle="dropdown" class="dropdown-toggle"> <mark>Option<b class="caret"></b></mark></a>
           
           <ul role="menu" class="dropdown-menu">
             
-           <li><a onclick="color(this);" style="color: orange; background: teal;" href="file:///storage/emulated/0/projects/examMaterial/jceExams/englishExam/subjects.html">🎉Online Business Ads</a></li>
+           <li><a onclick="color(this); onlineMarket();" style="color: orange; background: teal;">🎉Online Market Ad</a></li>
   
-            <li><a onclick="color(this);" style="color: orange; background: teal;" href="file:///storage/emulated/0/projects/examMaterial/pslcExams/englishExam/subjects.html">🏡Africa Online Home</a></li>
+            <li><a onclick="color(this); vlibrary();" style="color: orange; background: teal;">🏡Africa Online Home</a></li>
+            
+            <li><a onclick="color(this); passcode();" style="color: orange; background: teal;"> 🎞 &nbsp; Videos Tutorials </a></li>
             
              <li><a onclick="color(this); showAlert('This application is still under development, if you have any feedback +265 0782177920 is the number to use, if it happens that you have a legitimete business there is an advertising space on africa online market. you are welcome.');" style="color: orange; background: teal;">📄Send your Feedback</a></li>
           </ul>
@@ -249,7 +265,7 @@ margin-top: 6px;
 
 </div> 
 <div class="modal-footer"> 
-<button style="border: orange solid 1px;" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close &times;
+<button onclick="color(this);" style="border: orange solid 1px;" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close &times;
 </button> 
 </div> 
 </div> 
@@ -303,19 +319,19 @@ margin-top: 6px;
 	   <button onclick="color(this);" style="border-color: orange" type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#myModal1"><mark>📰Detail</mark></button>
 	   
 	   &nbsp;
-	   <button style="border-color:orange" type="button" class="btn btn-secondary btn-sm" onclick="color(this);"><mark>🎉Adverts</mark></button>
+	   <button style="border-color:orange" type="button" class="btn btn-secondary btn-sm" onclick="color(this); onlineMarket();"><mark>🎉Adverts</mark></button>
 	   
 	   &nbsp;
 	   <button style="border-color:orange" type="button" class="btn btn-secondary btn-sm" onclick="scrollToTop();color(this);"><mark>⤴Top</mark></button><br><br>
 	   <!--end button-->
 	
 	<!--links back & forward--> 		
-	 <span onclick="africaOnlineHome()" style="text-decoration: none; color: orange;">&laquo;Home Page </span>&nbsp;&nbsp;
+	 <span onclick="color(this); vlibrary()" style="text-decoration: none; color: orange;">&laquo;Home Page </span>&nbsp;&nbsp;
 	 	
-	 <span onclick="nextEnglishAppPage()" style="text-decoration: none; color: orange;" >&nbsp;Next Page&raquo;</span>	
+	 <span onclick="color(this); nextARpage();" style="text-decoration: none; color: orange;" >&nbsp;Next Page&raquo;</span>	
 </div><br>
 
-	<button class="floating-btn" onclick="color(this);scrollToTop(); s300();">🤖</button>
+	<button class="floating-btn" onclick="color(this);scrollToTop(); Gemini();">🤖</button>
  
 	 	  <script>
     function scrollToTop() {
