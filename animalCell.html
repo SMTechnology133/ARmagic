@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hybrid Animal Cell AR +IBM Interactive Learning</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="teal">
+<meta name="author" content="Salmanda">
+
+<!-- A-Frame -->
+<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+
+<!-- Stable AR.js -->
+<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+
+<style>
+body { margin:0; overflow:hidden; background:#000; }
+#help {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.9);
+  padding: 10px;
+  font-family: sans-serif;
+  font-size: 14px;
+  text-align: center;
+  z-index: 999;
+}
+</style>
+</head>
+
+<body>
+
+<div id="help">
+ 📷 Allow CAMERA & LOCATION.<br>
+ 📄 Point at HIRO marker OR move phone outdoors for markerless AR.
+</div>
+
+<a-scene
+  embedded
+  vr-mode-ui="enabled:false"
+  arjs="sourceType: webcam; debugUIEnabled:false;">
+
+  <!-- INFO PANEL -->
+  <a-plane
+    id="infoPanel"
+    position="0 2 -2"
+    width="2.8"
+    height="1.2"
+    color="#ffffff"
+    visible="false">
+    <a-text
+      id="infoText"
+      color="black"
+      align="center"
+      width="2.6"
+      position="0 0 0.01">
+    </a-text>
+  </a-plane>
+
+  <!-- ===== MARKER MODE ===== -->
+  <!-- Default Hiro marker -->
+  <a-marker preset="hiro">
+    <a-entity position="0 0.6 0" scale="1 1 1">
+
+      <!-- Cell membrane -->
+      <a-sphere radius="1.1" material="color:#ffccaa; opacity:0.25; transparent:true"></a-sphere>
+      <!-- Cytoplasm -->
+      <a-sphere radius="1.0" material="color:#fff1dc; opacity:0.3; transparent:true"></a-sphere>
+
+      <!-- Organelles -->
+      <a-sphere radius="0.35" color="purple"
+        onclick="showInfo('Nucleus','Controls cell activities and contains DNA.')"></a-sphere>
+
+      <a-sphere position="0.1 0.1 0" radius="0.12" color="darkred"
+        onclick="showInfo('Nucleolus','Responsible for making ribosomes.')"></a-sphere>
+
+      <a-sphere position="-0.6 -0.1 0" radius="0.18" color="orange"
+        onclick="showInfo('Mitochondrion','Site of respiration and energy production.')"></a-sphere>
+
+      <a-sphere position="0.6 -0.2 0" radius="0.18" color="orange"
+        onclick="showInfo('Mitochondrion','Provides energy needed for cell activities.')"></a-sphere>
+
+      <a-sphere position="-0.3 0.3 0" radius="0.08" color="brown"
+        onclick="showInfo('Ribosome','Site of protein synthesis.')"></a-sphere>
+
+      <a-sphere position="0.4 0.3 0.2" radius="0.15" color="yellow"
+        onclick="showInfo('Lysosome','Contains enzymes for digestion and waste removal.')"></a-sphere>
+
+      <a-sphere position="-0.4 -0.2 0.2" radius="0.18" material="color:#66ccff; opacity:0.6; transparent:true"
+        onclick="showInfo('Vacuole','Stores water and waste substances.')"></a-sphere>
+
+      <!-- Exam questions -->
+      <a-plane position="0 -0.6 0" width="2.2" height="1.2" color="#e3f2fd">
+        <a-text value="JCE QUESTIONS:+AFw-n1. Name THREE parts of an animal cell.+AFw-n2. State the function of the mitochondrion.+AFw-n3. Which organelle controls cell activities?+AFw-n4. Why do animal cells lack chloroplasts?"
+          align="center" color="black" width="2" position="0 0 0.01"></a-text>
+      </a-plane>
+    </a-entity>
+  </a-marker>
+
+  <!-- ===== MARKERLESS / GPS MODE ===== -->
+  <a-entity gps-entity-place="latitude:-13.9626; longitude:33.7741" scale="5 5 5">
+
+    <a-sphere radius="0.35" color="purple"
+      onclick="showInfo('Nucleus','Controls cell activities and contains DNA.')"></a-sphere>
+
+    <a-sphere position="0.1 0.1 0" radius="0.12" color="darkred"
+      onclick="showInfo('Nucleolus','Responsible for making ribosomes.')"></a-sphere>
+
+    <a-sphere position="-0.6 -0.1 0" radius="0.18" color="orange"
+      onclick="showInfo('Mitochondrion','Site of respiration and energy production.')"></a-sphere>
+
+  </a-entity>
+
+  <!-- CAMERA +- CURSOR -->
+  <a-camera gps-camera rotation-reader>
+    <a-cursor rayOrigin="mouse"></a-cursor>
+  </a-camera>
+
+</a-scene>
+
+<script>
+function showInfo(title, desc) {
+  const panel = document.querySelector('#infoPanel');
+  const text = document.querySelector('#infoText');
+
+  text.setAttribute('value', title.toUpperCase() +- "+AFwAXA-n+AFwAXA-n" +- desc);
+  panel.setAttribute('visible', true);
+
+  setTimeout(() => {
+    panel.setAttribute('visible', false);
+  }, 6000);
+}
+</script>
+
+</body>
+</html>
