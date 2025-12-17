@@ -1,220 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>JCE Animal Cell – Walk-Inside Edition</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <title>JCE Animal Cell AR – Hybrid GPS & Marker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- A-Frame (stable) -->
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
 
-  <!-- AR.js (Marker + GPS) -->
-  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif;
+        background: maroon; }
+        
+        #teacher-panel {
+            position: fixed; top: 10px; right: 10px;
+            background: gray; border-radius: 15px;
+            padding: 12px; z-index: 1000; width: 170px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            color:orange;
+            border:1px solid orange;
+        }
+        
+        .teacher-btn {
+            width: 100%; margin: 5px 0; padding: 10px;
+            border-radius: 25px; border: none; background: maroon;
+            color: orange; font-weight: bold; cursor: pointer;
+            border:1px solid orange;
+        }
 
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: sans-serif;
-      background: teal;
-    }
-    #ui-layer {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .mode-btn {
-      padding: 14px 18px;
-      border-radius: 30px;
-      border: 2px solid orange;
-      background: maroon;
-      color: orange;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .active { background: teal; }
-    #help-bar {
-      position: fixed;
-      bottom: 20px;
-      left: 10px;
-      right: 10px;
-      background: maroon;
-      color: orange;
-      padding: 12px;
-      text-align: center;
-      border-radius: 10px;
-      border: 1px solid orange;
-    }
-  </style>
+        #help-bar {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            background: rgba(128, 0, 0, 0.85); color: orange;
+            padding: 12px 25px; border-radius: 50px; text-align: center;
+            z-index: 1000; width: 80%; border: 2px solid orange;
+        }
+        
+        #status-label {
+            position: fixed; top: 10px; left: 10px;
+            background: gray; color: orange;
+            padding: 5px 15px; border-radius: 20px; font-size: 12px;
+            border:1px solid orange;
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- UI -->
-<div id="ui-layer">
-  <button id="markerBtn" class="mode-btn active"
-          onclick="switchMode('marker')"> DESK MODE</button>
-  <button id="gpsBtn" class="mode-btn"
-          onclick="switchMode('gps')"> WALK-INSIDE MODE</button>
+<div id="status-label">Mode: HIRO MARKER</div>
+
+<div id="teacher-panel">
+    <h4 style="margin:0 0 10px 0; text-align:center;"> Teacher</h4>
+    <button class="teacher-btn" onclick="toggleARMode()"> Switch to GPS</button>
+    <button class="teacher-btn" onclick="toggleVoice()"> Voice ON/OFF</button>
+    <button class="teacher-btn" onclick="toggleQuiz()"> Quiz ON/OFF</button>
+    <button class="teacher-btn" onclick="resetQuiz()"> Reset Quiz</button>
 </div>
 
 <div id="help-bar">
-  <span id="instruction">Point camera at HIRO marker</span>
+    <span id="instruction">Point at HIRO marker or switch to GPS mode!</span>
 </div>
 
-<!-- AR Scene -->
-<a-scene
-  embedded
-  vr-mode-ui="enabled:false"
-  arjs="sourceType: webcam; debugUIEnabled:false;">
+<a-scene embedded vr-mode-ui="enabled:false" 
+         arjs="sourceType:webcam; debugUIEnabled:false; trackingMethod: best;">
+    
+    <a-camera id="cam" gps-camera rotation-reader cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+        
+        <a-plane id="infoPanel" position="0 -0.6 -1.5" width="2.2" height="0.8" color="#333" visible="false">
+            <a-text id="infoText" value="" color="white" align="center" width="2"></a-text>
+        </a-plane>
 
-  <!-- Camera -->
-  <a-camera id="mainCam" rotation-reader cursor="rayOrigin: mouse">
-    <a-plane id="infoPanel"
-             position="0 -0.6 -1.5"
-             width="2.4"
-             height="1"
-             color="#f0f0f0"
-             visible="false">
-      <a-text id="infoText"
-              align="center"
-              color="black"
-              width="2.2">
-      </a-text>
-    </a-plane>
-  </a-camera>
+        <a-plane id="quizPanel" position="0 0.6 -2" width="2.6" height="2" color="#fff3e0" visible="false">
+            <a-text id="quizQ" position="0 0.7 0.1" color="black" width="2.4" align="center"></a-text>
+            <a-text id="opt0" class="clickable" position="0 0.2 0.1" color="maroon" align="center" width="2.2"></a-text>
+            <a-text id="opt1" class="clickable" position="0 -0.2 0.1" color="maroon" align="center" width="2.2"></a-text>
+            <a-text id="opt2" class="clickable" position="0 -0.6 0.1" color="maroon" align="center" width="2.2"></a-text>
+            <a-text id="scoreText" position="0 -1.1 0.1" color="blue" align="center" width="2"></a-text>
+        </a-plane>
+    </a-camera>
 
-  <!-- MARKER MODE -->
-  <a-marker id="markerEntity" preset="hiro">
-    <a-entity scale="0.8 0.8 0.8">
+    <a-marker id="cellMarker" preset="hiro">
+        <a-entity id="markerContent"></a-entity>
+    </a-marker>
 
-      <!-- Cell body -->
-      <a-sphere radius="1"
-                material="color:#ffccaa; opacity:0.3; transparent:true">
-      </a-sphere>
-
-      <!-- Nucleus -->
-      <a-sphere class="clickable"
-                radius="0.3"
-                color="purple"
-                data-title="Nucleus"
-                data-desc="Desk Mode: Control center of the cell.">
-      </a-sphere>
-
-      <!-- Mitochondrion -->
-      <a-sphere class="clickable"
-                position="0.6 0 0"
-                radius="0.15"
-                color="orange"
-                data-title="Mitochondrion"
-                data-desc="Desk Mode: Produces energy for the cell.">
-      </a-sphere>
-
+    <a-entity id="cellGPS" gps-entity-place="latitude: -13.9626; longitude: 33.7741;" scale="10 10 10" visible="false">
+        <a-entity id="gpsContent"></a-entity>
     </a-entity>
-  </a-marker>
-
-  <!-- GPS WALK-INSIDE MODE -->
-  <a-entity id="gpsEntity"
-            gps-entity-place="latitude: -13.9626; longitude: 33.7741"
-            visible="false">
-
-    <!-- Giant cell -->
-    <a-sphere radius="15"
-              material="color:#fff1dc; opacity:0.15; transparent:true">
-    </a-sphere>
-
-    <!-- Giant nucleus -->
-    <a-sphere class="clickable"
-              radius="4"
-              color="purple"
-              data-title="Giant Nucleus"
-              data-desc="You are inside the control center of the cell.">
-    </a-sphere>
-
-    <!-- Mitochondria -->
-    <a-sphere class="clickable"
-              position="10 0 5"
-              radius="2"
-              color="orange"
-              data-title="Mitochondrion"
-              data-desc="Powerhouse of the cell.">
-    </a-sphere>
-
-    <a-sphere class="clickable"
-              position="-8 0 -10"
-              radius="2"
-              color="orange"
-              data-title="Mitochondrion"
-              data-desc="Another energy producer.">
-    </a-sphere>
-
-    <a-text value="NUCLEUS"
-            position="0 6 0"
-            scale="20 20 20"
-            align="center"
-            look-at="[camera]">
-    </a-text>
-
-  </a-entity>
 
 </a-scene>
 
 <script>
-  const instruction = document.getElementById('instruction');
+let voiceOn = true;
+let quizActive = false;
+let isGPSMode = false;
+let qIndex = 0;
+let score = 0;
 
-  function switchMode(mode) {
-    const markerEnt = document.getElementById('markerEntity');
-    const gpsEnt = document.getElementById('gpsEntity');
-    const cam = document.getElementById('mainCam');
+// The HTML structure for the cell organelles
+const cellHTML = `
+    <a-sphere radius="1" material="color:#ffddc1; opacity:0.25; transparent:true"></a-sphere>
+    <a-sphere class="clickable" radius="1.05" material="color:brown; opacity:0.1; wireframe:true"
+              data-title="Cell Membrane" data-desc="The outer boundary that controls what enters and exits the cell."></a-sphere>
+    <a-sphere class="clickable" radius="0.3" color="purple" position="0 0 0"
+              data-title="Nucleus" data-desc="The control center of the cell. It contains DNA."></a-sphere>
+    <a-sphere class="clickable" position="0.6 0.2 0.4" radius="0.15" color="orange"
+              data-title="Mitochondrion" data-desc="The site of energy production through respiration."></a-sphere>
+    <a-sphere class="clickable" position="-0.4 -0.3 0.5" radius="0.06" color="red"
+              data-title="Ribosomes" data-desc="Small structures where protein synthesis happens."></a-sphere>
+    <a-box class="clickable" position="-0.5 0.4 -0.3" width="0.4" height="0.1" depth="0.3" color="green"
+           data-title="Golgi Body" data-desc="It modifies and packages proteins for transport."></a-box>
+    <a-sphere class="clickable" position="0.3 -0.5 -0.4" radius="0.12" color="lightblue"
+              data-title="Vacuole" data-desc="Small and temporary in animal cells."></a-sphere>
+`;
 
-    if (mode === 'marker') {
-      markerEnt.setAttribute('visible', true);
-      gpsEnt.setAttribute('visible', false);
-      cam.removeAttribute('gps-camera');
+const questions = [
+    {q:"Which organelle is the control center?", o:["Mitochondrion","Nucleus","Vacuole"], a:1},
+    {q:"Where is energy produced?", o:["Ribosome","Nucleus","Mitochondrion"], a:2},
+    {q:"What is the site of protein synthesis?", o:["Ribosomes","Golgi Body","Cell Membrane"], a:0},
+    {q:"Which part controls movement in and out?", o:["Cytoplasm","Cell Membrane","Nucleus"], a:1},
+    {q:"What describes the Golgi Body?", o:["Energy maker","Protein packager","Control center"], a:1}
+];
 
-      document.getElementById('markerBtn').classList.add('active');
-      document.getElementById('gpsBtn').classList.remove('active');
+function toggleARMode() {
+    isGPSMode = !isGPSMode;
+    const marker = document.getElementById('cellMarker');
+    const gps = document.getElementById('cellGPS');
+    const status = document.getElementById('status-label');
+    const btn = document.querySelector('[onclick="toggleARMode()"]');
 
-      instruction.innerText = 'Point camera at HIRO marker';
+    if (isGPSMode) {
+        marker.setAttribute('visible', false);
+        gps.setAttribute('visible', true);
+        status.innerText = "Mode: GPS LOCATION";
+        btn.innerText = " Switch to HIRO";
+        alert("GPS Mode: Look toward the school yard coordinates!");
     } else {
-      markerEnt.setAttribute('visible', false);
-      gpsEnt.setAttribute('visible', true);
-
-      cam.setAttribute(
-        'gps-camera',
-        'simulateLatitude: -13.9626; simulateLongitude: 33.7741'
-      );
-
-      document.getElementById('gpsBtn').classList.add('active');
-      document.getElementById('markerBtn').classList.remove('active');
-
-      instruction.innerText = 'Walk towards the giant cell';
+        marker.setAttribute('visible', true);
+        gps.setAttribute('visible', false);
+        status.innerText = "Mode: HIRO MARKER";
+        btn.innerText = " Switch to GPS";
     }
-  }
+}
 
-  // Mobile-safe click handler
-  document.addEventListener('click', (e) => {
-    const el = e.target;
-    if (el.classList.contains('clickable')) {
-      showInfo(el.dataset.title, el.dataset.desc);
+function speak(text) {
+    if (!voiceOn) return;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+}
+
+function toggleVoice() { voiceOn = !voiceOn; alert("Voice: " + (voiceOn ? "ON" : "OFF")); }
+function toggleQuiz() { quizActive = !quizActive; showQuiz(); }
+function resetQuiz() { qIndex = 0; score = 0; if(quizActive) showQuiz(); }
+
+function showQuiz() {
+    const panel = document.getElementById("quizPanel");
+    if (!quizActive || qIndex >= questions.length) {
+        if(qIndex >= questions.length) {
+            document.getElementById("quizQ").setAttribute("value", `Quiz Over! Score: ${score}/${questions.length}`);
+            speak("Quiz finished.");
+        } else { panel.setAttribute("visible", false); }
+        return;
     }
-  });
+    panel.setAttribute("visible", true);
+    const q = questions[qIndex];
+    document.getElementById("quizQ").setAttribute("value", q.q);
+    speak(q.q);
+    for (let i = 0; i < 3; i++) {
+        const opt = document.getElementById("opt" + i);
+        opt.setAttribute("value", q.o[i]);
+        opt.onclick = () => {
+            if (i === q.a) { score++; speak("Correct!"); } else { speak("Incorrect."); }
+            qIndex++;
+            setTimeout(showQuiz, 1500);
+        };
+    }
+    document.getElementById("scoreText").setAttribute("value", `Score: ${score}/${questions.length}`);
+}
 
-  function showInfo(title, desc) {
-    const panel = document.getElementById('infoPanel');
-    const text = document.getElementById('infoText');
+function initializeContent() {
+    document.getElementById('markerContent').innerHTML = cellHTML;
+    document.getElementById('gpsContent').innerHTML = cellHTML;
 
-    text.setAttribute('value', title.toUpperCase() + '\n\n' + desc);
-    panel.setAttribute('visible', true);
-
+    // Attach click events to all current and future organelles
     setTimeout(() => {
-      panel.setAttribute('visible', false);
-    }, 5000);
-  }
+        document.querySelectorAll(".clickable").forEach(el => {
+            if(el.id.startsWith("opt")) return;
+            el.addEventListener("click", () => {
+                const title = el.getAttribute("data-title");
+                const desc = el.getAttribute("data-desc");
+                const infoPanel = document.getElementById("infoPanel");
+                const infoText = document.getElementById("infoText");
+                infoText.setAttribute("value", `${title.toUpperCase()}\n\n${desc}`);
+                infoPanel.setAttribute("visible", true);
+                speak(desc);
+                setTimeout(() => infoPanel.setAttribute("visible", false), 5000);
+            });
+        });
+    }, 1000);
+}
+
+window.onload = initializeContent;
 </script>
 
 </body>

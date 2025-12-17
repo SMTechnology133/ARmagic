@@ -1,135 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Hybrid Plant Cell AR +IBM Marker & Markerless</title>
+    <meta charset="UTF-8">
+    <title>JCE Plant Cell AR � Enhanced Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="teal">
-<meta name="author" content="Salmanda">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
 
-<!-- A-Frame -->
-<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif;
+        background: teal;
+         }
+        
+        #teacher-panel {
+            position: fixed; top: 10px; right: 10px;
+            background: gray; border-radius: 15px;
+            padding: 12px; z-index: 1000; width: 170px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border:1px solid orange;
+            color: orange;
+        }
+        
+        .teacher-btn {
+            width: 100%;
+             margin: 5px 0; padding: 10px;
+            border-radius: 25px; border: none; background: teal;
+            color: orange; font-weight: bold; cursor: pointer;
+            border:1px solid orange;
+        }
 
-<!-- Stable AR.js -->
-<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
-
-<style>
-body { margin:0; overflow:hidden; background:#000; }
-#help {
-  position: fixed;
-  bottom: 10px;
-  left: 10px;
-  right: 10px;
-  background: rgba(255,255,255,0.9);
-  padding: 10px;
-  font-family: sans-serif;
-  font-size: 14px;
-  text-align: center;
-  z-index: 999;
-}
-</style>
+        #help-bar {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            background: teal; color: orange;
+            padding: 12px 25px; border-radius: 50px; text-align: center;
+            z-index: 1000; width: 80%; border: 1px solid orange;
+        }
+        
+        #status-label {
+            position: fixed; top: 10px; left: 10px;
+            background: gray; color: orange;
+            padding: 5px 15px; border-radius: 20px; font-size: 12px;
+            border: 1px solid orange;
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- ================= USER HELP ================= -->
-<div id="help">
-📷 Allow CAMERA & LOCATION.<br>
-📄 Point at HIRO marker OR move phone outdoors for markerless AR.
+<div id="status-label">Mode: HIRO MARKER</div>
+
+<div id="teacher-panel">
+    <h4 style="margin:0 0 10px 0; text-align:center;"> Plant Cell</h4>
+    <button class="teacher-btn" onclick="toggleARMode()"> Switch to GPS</button>
+    <button class="teacher-btn" onclick="toggleVoice()"> Voice ON/OFF</button>
+    <button class="teacher-btn" onclick="toggleQuiz()"> Quiz ON/OFF</button>
+    <button class="teacher-btn" onclick="resetQuiz()"> Reset Quiz</button>
 </div>
 
-<!-- ================= AR SCENE ================= -->
-<a-scene
-  embedded
-  vr-mode-ui="enabled:false"
-  arjs="sourceType: webcam; debugUIEnabled:false;">
+<div id="help-bar">
+    <span id="instruction">Point at HIRO marker or switch to GPS mode!</span>
+</div>
 
-  <!-- ========== INFO PANEL ========== -->
-  <a-plane
-    id="infoPanel"
-    position="0 2 -2"
-    width="2.6"
-    height="1.1"
-    color="#ffffff"
-    visible="false">
-    <a-text
-      id="infoText"
-      color="black"
-      align="center"
-      width="2.4"
-      position="0 0 0.01">
-    </a-text>
-  </a-plane>
+<a-scene embedded vr-mode-ui="enabled:false" 
+         arjs="sourceType:webcam; debugUIEnabled:false; trackingMethod: best;">
+    
+    <a-camera id="cam" gps-camera rotation-reader cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+        
+        <a-plane id="infoPanel" position="0 -0.6 -1.5" width="2.2" height="0.8" color="#1b5e20" visible="false">
+            <a-text id="infoText" value="" color="white" align="center" width="2"></a-text>
+        </a-plane>
 
-  <!-- ========== MARKER MODE ========= -->
-  <a-marker preset="hiro">
+        <a-plane id="quizPanel" position="0 0.6 -2" width="2.6" height="2" color="#f1f8e9" visible="false">
+            <a-text id="quizQ" position="0 0.7 0.1" color="black" width="2.4" align="center"></a-text>
+            <a-text id="opt0" class="clickable" position="0 0.2 0.1" color="#2e7d32" align="center" width="2.2"></a-text>
+            <a-text id="opt1" class="clickable" position="0 -0.2 0.1" color="#2e7d32" align="center" width="2.2"></a-text>
+            <a-text id="opt2" class="clickable" position="0 -0.6 0.1" color="#2e7d32" align="center" width="2.2"></a-text>
+            <a-text id="scoreText" position="0 -1.1 0.1" color="blue" align="center" width="2"></a-text>
+        </a-plane>
+    </a-camera>
 
-    <a-entity position="0 0.6 0" scale="1 1 1">
-      <a-box width="1.6" height="1.6" depth="1.6"
-        material="color:#6fbf73; opacity:0.25; transparent:true"></a-box>
+    <a-marker id="cellMarker" preset="hiro">
+        <a-entity id="markerContent" rotation="0 0 0"></a-entity>
+    </a-marker>
 
-      <a-box width="1.4" height="1.4" depth="1.4"
-        material="color:#00aa66; opacity:0.15; transparent:true"></a-box>
-
-      <a-sphere radius="0.25" color="purple"
-        onclick="showInfo('Nucleus','Controls cell activities and contains DNA.')"></a-sphere>
-
-      <a-sphere position="-0.4 0 0" radius="0.35"
-        material="color:#66ccff; opacity:0.6; transparent:true"
-        onclick="showInfo('Vacuole','Stores water, food and waste.')"></a-sphere>
-
-      <a-sphere position="0.4 0.2 0" radius="0.15" color="green"
-        onclick="showInfo('Chloroplast','Site of photosynthesis.')"></a-sphere>
-
-      <a-sphere position="0.3 -0.2 0.2" radius="0.12" color="orange"
-        onclick="showInfo('Mitochondrion','Releases energy.')"></a-sphere>
-
-      <a-plane position="0 -0.6 0" width="2.2" height="1.2" color="#fff3cd">
-        <a-text
-          value="JCE QUESTIONS:+AFw-n1. Name TWO parts found only in plant cells.+AFw-n2. State the function of the nucleus.+AFw-n3. Which organelle does photosynthesis?+AFw-n4. Why is the vacuole large?"
-          align="center" color="black" width="2" position="0 0 0.01">
-        </a-text>
-      </a-plane>
+    <a-entity id="cellGPS" gps-entity-place="latitude: -13.9626; longitude: 33.7741;" scale="10 10 10" visible="false">
+        <a-entity id="gpsContent"></a-entity>
     </a-entity>
-
-  </a-marker>
-
-  <!-- ========== MARKERLESS (GPS) MODE ========= -->
-  <a-entity
-    gps-entity-place="latitude: -13.9626; longitude: 33.7741"
-    scale="5 5 5">
-
-    <a-sphere radius="0.25" color="purple"
-      onclick="showInfo('Nucleus','Controls cell activities and contains DNA.')">
-    </a-sphere>
-
-    <a-sphere position="0.4 0.2 0" radius="0.15" color="green"
-      onclick="showInfo('Chloroplast','Makes food by photosynthesis.')">
-    </a-sphere>
-
-  </a-entity>
-
-  <!-- CAMERA -->
-  <a-camera gps-camera rotation-reader>
-    <a-cursor rayOrigin="mouse"></a-cursor>
-  </a-camera>
 
 </a-scene>
 
-<!-- ========== INTERACTION SCRIPT ========== -->
 <script>
-function showInfo(title, desc) {
-  const panel = document.querySelector('#infoPanel');
-  const text = document.querySelector('#infoText');
+let voiceOn = true;
+let quizActive = false;
+let isGPSMode = false;
+let qIndex = 0;
+let score = 0;
 
-  text.setAttribute('value', title.toUpperCase() +- "+AFwAXA-n+AFwAXA-n" +- desc);
-  panel.setAttribute('visible', true);
+const cellHTML = `
+    <a-box class="clickable" width="1.6" height="2" depth="1.2" material="color:#4caf50; opacity:0.3; side:double"
+           data-title="Cell Wall" data-desc="A rigid outer layer that provides structural support and protection."></a-box>
+    
+    <a-box class="clickable" position="0.2 -0.2 0" width="0.6" height="1.2" depth="0.6" color="#90caf9"
+           data-title="Vacuole" data-desc="Stores water and maintains turgor pressure in the plant cell."></a-box>
 
-  setTimeout(() => {
-    panel.setAttribute('visible', false);
-  }, 6000);
+    <a-sphere class="clickable" radius="0.25" color="purple" position="-0.4 0.5 0.2"
+              data-title="Nucleus" data-desc="The control center containing the genetic material (DNA)."></a-sphere>
+
+    <a-torus class="clickable" position="-0.4 0.5 0.2" radius="0.32" radius-tubular="0.02" color="#e91e63" rotation="90 0 0"
+             data-title="Rough ER" data-desc="Transports proteins; it is called 'rough' because of ribosomes."></a-torus>
+
+    <a-torus class="clickable" position="-0.4 0.3 0.2" radius="0.25" radius-tubular="0.015" color="#f06292" rotation="0 45 0"
+             data-title="Smooth ER" data-desc="Responsible for lipid synthesis and detoxification."></a-torus>
+
+    <a-sphere class="clickable" position="0.5 0.6 -0.3" radius="0.12" color="darkgreen"
+              data-title="Chloroplast" data-desc="Captures sunlight to make food through photosynthesis."></a-sphere>
+
+    <a-sphere class="clickable" position="0.4 -0.7 0.2" radius="0.1" color="orange"
+              data-title="Mitochondrion" data-desc="The powerhouse of the cell, generating energy."></a-sphere>
+`;
+
+const questions = [
+    {q:"What rigid structure do plants have that animals don't?", o:["Nucleus","Cell Wall","Cytoplasm"], a:1},
+    {q:"Which organelle performs photosynthesis?", o:["Chloroplast","ER","Vacuole"], a:0},
+    {q:"What is the large water-storage area called?", o:["Mitochondrion","Nucleus","Vacuole"], a:2},
+    {q:"Which organelle handles protein transport?", o:["Cell Wall","Endoplasmic Reticulum","Chloroplast"], a:1},
+    {q:"What makes the Rough ER look 'rough'?", o:["DNA","Ribosomes","Water"], a:1}
+];
+
+function toggleARMode() {
+    isGPSMode = !isGPSMode;
+    const marker = document.getElementById('cellMarker');
+    const gps = document.getElementById('cellGPS');
+    const status = document.getElementById('status-label');
+    const btn = document.querySelector('[onclick="toggleARMode()"]');
+
+    if (isGPSMode) {
+        marker.setAttribute('visible', false);
+        gps.setAttribute('visible', true);
+        status.innerText = "Mode: GPS LOCATION";
+        btn.innerText = " Switch to HIRO";
+        alert("GPS Mode: Look toward the school yard coordinates!");
+    } else {
+        marker.setAttribute('visible', true);
+        gps.setAttribute('visible', false);
+        status.innerText = "Mode: HIRO MARKER";
+        btn.innerText = " Switch to GPS";
+    }
 }
+
+function speak(text) {
+    if (!voiceOn) return;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+}
+
+function toggleVoice() { voiceOn = !voiceOn; alert("Voice: " + (voiceOn ? "ON" : "OFF")); }
+function toggleQuiz() { quizActive = !quizActive; showQuiz(); }
+function resetQuiz() { qIndex = 0; score = 0; if(quizActive) showQuiz(); }
+
+function showQuiz() {
+    const panel = document.getElementById("quizPanel");
+    if (!quizActive || qIndex >= questions.length) {
+        if(qIndex >= questions.length) {
+            document.getElementById("quizQ").setAttribute("value", `Final Score: ${score}/${questions.length}`);
+            speak("Quiz complete!");
+        } else { panel.setAttribute("visible", false); }
+        return;
+    }
+    panel.setAttribute("visible", true);
+    const q = questions[qIndex];
+    document.getElementById("quizQ").setAttribute("value", q.q);
+    speak(q.q);
+    for (let i = 0; i < 3; i++) {
+        const opt = document.getElementById("opt" + i);
+        opt.setAttribute("value", q.o[i]);
+        opt.onclick = () => {
+            if (i === q.a) { score++; speak("Correct!"); } else { speak("Incorrect."); }
+            qIndex++;
+            setTimeout(showQuiz, 1200);
+        };
+    }
+    document.getElementById("scoreText").setAttribute("value", `Score: ${score}/${questions.length}`);
+}
+
+function initializeContent() {
+    document.getElementById('markerContent').innerHTML = cellHTML;
+    document.getElementById('gpsContent').innerHTML = cellHTML;
+
+    setTimeout(() => {
+        document.querySelectorAll(".clickable").forEach(el => {
+            if(el.id.startsWith("opt")) return;
+            el.addEventListener("click", () => {
+                const title = el.getAttribute("data-title");
+                const desc = el.getAttribute("data-desc");
+                if(!title) return;
+                const infoPanel = document.getElementById("infoPanel");
+                const infoText = document.getElementById("infoText");
+                infoText.setAttribute("value", `${title.toUpperCase()}\n\n${desc}`);
+                infoPanel.setAttribute("visible", true);
+                speak(desc);
+                setTimeout(() => infoPanel.setAttribute("visible", false), 5000);
+            });
+        });
+    }, 1000);
+}
+
+window.onload = initializeContent;
 </script>
 
 </body>
