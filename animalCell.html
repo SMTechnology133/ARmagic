@@ -1,130 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>JCE Animal Cell - Walk-Inside Edition</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+  <meta charset="UTF-8" />
+  <title>JCE Animal Cell – Walk-Inside Edition</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif;
-        background: teal; }
-        #ui-layer {
-            position: fixed; top: 10px; left: 10px; z-index: 1000;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        .mode-btn {
-            padding: 15px 20px; border-radius: 30px; border: 2px solid white;
-            background: #800000; color: white; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .active { background: #008080; }
-        #help-bar {
-            position: fixed; bottom: 20px; left: 10px; right: 10px;
-            background: maroon; color: orange; padding: 15px;
-            text-align: center; border-radius: 10px; border: 1px solid #008080;
-            border:1px solid orange;
-        }
-        #dist-val { color: #00ff00; font-weight: bold; font-size: 1.2em; }
-    </style>
+  <!-- A-Frame (stable) -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
+  <!-- AR.js (Marker + GPS) -->
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+      background: teal;
+    }
+    #ui-layer {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mode-btn {
+      padding: 14px 18px;
+      border-radius: 30px;
+      border: 2px solid orange;
+      background: maroon;
+      color: orange;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .active { background: teal; }
+    #help-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 10px;
+      right: 10px;
+      background: maroon;
+      color: orange;
+      padding: 12px;
+      text-align: center;
+      border-radius: 10px;
+      border: 1px solid orange;
+    }
+  </style>
 </head>
 
 <body>
 
+<!-- UI -->
 <div id="ui-layer">
-    <button id="markerBtn" class="mode-btn active" onclick="switchMode('marker')"> DESK MODE</button>
-    <button id="gpsBtn" class="mode-btn" onclick="switchMode('gps')"> WALK-INSIDE MODE</button>
+  <button id="markerBtn" class="mode-btn active"
+          onclick="switchMode('marker')"> DESK MODE</button>
+  <button id="gpsBtn" class="mode-btn"
+          onclick="switchMode('gps')"> WALK-INSIDE MODE</button>
 </div>
 
 <div id="help-bar">
-    <span id="instruction">Point at HIRO marker</span><br>
-    <span id="dist-val"></span>
+  <span id="instruction">Point camera at HIRO marker</span>
 </div>
 
+<!-- AR Scene -->
 <a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    arjs="sourceType: webcam; debugUIEnabled: false;"
-    cursor="rayOrigin: mouse">
+  embedded
+  vr-mode-ui="enabled:false"
+  arjs="sourceType: webcam; debugUIEnabled:false;">
 
-    <a-camera id="mainCam" gps-camera rotation-reader>
-        <a-plane id="infoPanel" position="0 -0.6 -1.5" width="2.2" height="0.8" color="#f0f0f0" visible="false">
-            <a-text id="infoText" color="black" align="center" width="2"></a-text>
-        </a-plane>
-    </a-camera>
+  <!-- Camera -->
+  <a-camera id="mainCam" rotation-reader cursor="rayOrigin: mouse">
+    <a-plane id="infoPanel"
+             position="0 -0.6 -1.5"
+             width="2.4"
+             height="1"
+             color="#f0f0f0"
+             visible="false">
+      <a-text id="infoText"
+              align="center"
+              color="black"
+              width="2.2">
+      </a-text>
+    </a-plane>
+  </a-camera>
 
-    <a-marker id="markerEntity" preset="hiro">
-        <a-entity scale="0.8 0.8 0.8">
-            <a-sphere radius="1" material="color:#ffccaa; opacity:0.3; transparent:true"></a-sphere>
-            <a-sphere radius="0.3" color="purple" onclick="showInfo('Nucleus','Desk Mode: A small control center.')"></a-sphere>
-            <a-sphere position="0.5 0 0" radius="0.15" color="orange" onclick="showInfo('Mitochondrion','Desk Mode: Tiny energy producer.')"></a-sphere>
-        </a-entity>
-    </a-marker>
+  <!-- MARKER MODE -->
+  <a-marker id="markerEntity" preset="hiro">
+    <a-entity scale="0.8 0.8 0.8">
 
-    <a-entity id="gpsEntity" gps-entity-place="latitude: -13.9626; longitude: 33.7741" visible="false">
-        <a-sphere radius="15" material="color:#fff1dc; opacity:0.15; transparent:true; side: double"></a-sphere>
-        
-        <a-sphere radius="4" color="purple" onclick="showInfo('Giant Nucleus','You are inside the control center!')"></a-sphere>
-        
-        <a-sphere position="10 0 5" radius="2" color="orange" onclick="showInfo('Mitochondrion','The powerhouse of the cell.')"></a-sphere>
-        <a-sphere position="-8 0 -10" radius="2" color="orange" onclick="showInfo('Mitochondrion','You found another energy source!')"></a-sphere>
-        
-        <a-text value="NUCLEUS" position="0 6 0" align="center" scale="20 20 20" look-at="[gps-camera]"></a-text>
+      <!-- Cell body -->
+      <a-sphere radius="1"
+                material="color:#ffccaa; opacity:0.3; transparent:true">
+      </a-sphere>
+
+      <!-- Nucleus -->
+      <a-sphere class="clickable"
+                radius="0.3"
+                color="purple"
+                data-title="Nucleus"
+                data-desc="Desk Mode: Control center of the cell.">
+      </a-sphere>
+
+      <!-- Mitochondrion -->
+      <a-sphere class="clickable"
+                position="0.6 0 0"
+                radius="0.15"
+                color="orange"
+                data-title="Mitochondrion"
+                data-desc="Desk Mode: Produces energy for the cell.">
+      </a-sphere>
+
     </a-entity>
+  </a-marker>
+
+  <!-- GPS WALK-INSIDE MODE -->
+  <a-entity id="gpsEntity"
+            gps-entity-place="latitude: -13.9626; longitude: 33.7741"
+            visible="false">
+
+    <!-- Giant cell -->
+    <a-sphere radius="15"
+              material="color:#fff1dc; opacity:0.15; transparent:true">
+    </a-sphere>
+
+    <!-- Giant nucleus -->
+    <a-sphere class="clickable"
+              radius="4"
+              color="purple"
+              data-title="Giant Nucleus"
+              data-desc="You are inside the control center of the cell.">
+    </a-sphere>
+
+    <!-- Mitochondria -->
+    <a-sphere class="clickable"
+              position="10 0 5"
+              radius="2"
+              color="orange"
+              data-title="Mitochondrion"
+              data-desc="Powerhouse of the cell.">
+    </a-sphere>
+
+    <a-sphere class="clickable"
+              position="-8 0 -10"
+              radius="2"
+              color="orange"
+              data-title="Mitochondrion"
+              data-desc="Another energy producer.">
+    </a-sphere>
+
+    <a-text value="NUCLEUS"
+            position="0 6 0"
+            scale="20 20 20"
+            align="center"
+            look-at="[camera]">
+    </a-text>
+
+  </a-entity>
 
 </a-scene>
 
-
-
 <script>
-    function switchMode(mode) {
-        const markerEnt = document.querySelector('#markerEntity');
-        const gpsEnt = document.querySelector('#gpsEntity');
-        const instruction = document.querySelector('#instruction');
-        const distVal = document.querySelector('#dist-val');
-        const cam = document.querySelector('#mainCam');
+  const instruction = document.getElementById('instruction');
 
-        if (mode === 'marker') {
-            markerEnt.setAttribute('visible', true);
-            gpsEnt.setAttribute('visible', false);
-            cam.removeAttribute('gps-camera'); 
-            document.getElementById('markerBtn').classList.add('active');
-            document.getElementById('gpsBtn').classList.remove('active');
-            instruction.innerText = "Point camera at HIRO marker";
-            distVal.innerText = "";
-        } else {
-            markerEnt.setAttribute('visible', false);
-            gpsEnt.setAttribute('visible', true);
-            cam.setAttribute('gps-camera', 'simulateLatitude: -13.9626; simulateLongitude: 33.7741'); // Simulation for testing
-            document.getElementById('gpsBtn').classList.add('active');
-            document.getElementById('markerBtn').classList.remove('active');
-            instruction.innerText = "Walk towards the Giant Cell";
-        }
+  function switchMode(mode) {
+    const markerEnt = document.getElementById('markerEntity');
+    const gpsEnt = document.getElementById('gpsEntity');
+    const cam = document.getElementById('mainCam');
+
+    if (mode === 'marker') {
+      markerEnt.setAttribute('visible', true);
+      gpsEnt.setAttribute('visible', false);
+      cam.removeAttribute('gps-camera');
+
+      document.getElementById('markerBtn').classList.add('active');
+      document.getElementById('gpsBtn').classList.remove('active');
+
+      instruction.innerText = 'Point camera at HIRO marker';
+    } else {
+      markerEnt.setAttribute('visible', false);
+      gpsEnt.setAttribute('visible', true);
+
+      cam.setAttribute(
+        'gps-camera',
+        'simulateLatitude: -13.9626; simulateLongitude: 33.7741'
+      );
+
+      document.getElementById('gpsBtn').classList.add('active');
+      document.getElementById('markerBtn').classList.remove('active');
+
+      instruction.innerText = 'Walk towards the giant cell';
     }
+  }
 
-    // Distance update logic
-    window.addEventListener('gps-camera-update-position', (e) => {
-        if (document.getElementById('gpsBtn').classList.contains('active')) {
-            const gpsEnt = document.querySelector('#gpsEntity');
-            const distVal = document.querySelector('#dist-val');
-            const distance = gpsEnt.getAttribute('distance');
-            
-            if (distance) {
-                const d = parseFloat(distance).toFixed(1);
-                distVal.innerText = d + " meters away";
-                if (d < 15) distVal.innerText = "YOU ARE INSIDE THE CELL!";
-            }
-        }
-    });
-
-    function showInfo(title, desc) {
-        const panel = document.querySelector('#infoPanel');
-        const text = document.querySelector('#infoText');
-        text.setAttribute('value', title.toUpperCase() + "\n\n" + desc);
-        panel.setAttribute('visible', true);
-        setTimeout(() => { panel.setAttribute('visible', false); }, 5000);
+  // Mobile-safe click handler
+  document.addEventListener('click', (e) => {
+    const el = e.target;
+    if (el.classList.contains('clickable')) {
+      showInfo(el.dataset.title, el.dataset.desc);
     }
+  });
+
+  function showInfo(title, desc) {
+    const panel = document.getElementById('infoPanel');
+    const text = document.getElementById('infoText');
+
+    text.setAttribute('value', title.toUpperCase() + '\n\n' + desc);
+    panel.setAttribute('visible', true);
+
+    setTimeout(() => {
+      panel.setAttribute('visible', false);
+    }, 5000);
+  }
 </script>
+
 </body>
 </html>
