@@ -1,16 +1,27 @@
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>JCE Animal Cell AR – 3D Labels</title>
+<title>JCE Animal Cell AR – Fixed</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+<script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
 
 <style>
-body{margin:0;overflow:hidden;font-family:Segoe UI,sans-serif;}
+body { margin:0; overflow:hidden; font-family:Segoe UI,sans-serif; }
+
+a-scene { pointer-events:none; }
+
+#teacher-panel, #help-bar, #status-label, #gps-debug {
+ pointer-events:auto;
+}
+
 #status-label,#gps-debug{
  position:fixed;left:10px;padding:6px 12px;
  background:rgba(0,0,0,.7);color:orange;
@@ -18,6 +29,7 @@ body{margin:0;overflow:hidden;font-family:Segoe UI,sans-serif;}
 }
 #status-label{top:10px;}
 #gps-debug{top:45px;}
+
 #teacher-panel{
  position:fixed;top:10px;right:10px;
  background:rgba(60,60,60,.9);
@@ -25,6 +37,7 @@ body{margin:0;overflow:hidden;font-family:Segoe UI,sans-serif;}
  width:160px;color:orange;
  border:1px solid orange;z-index:999;
 }
+
 .teacher-btn{
  width:100%;margin:4px 0;
  padding:8px;border-radius:8px;
@@ -32,6 +45,7 @@ body{margin:0;overflow:hidden;font-family:Segoe UI,sans-serif;}
  border:1px solid orange;
  font-size:11px;font-weight:bold;
 }
+
 #help-bar{
  position:fixed;bottom:20px;left:50%;
  transform:translateX(-50%);
@@ -46,7 +60,7 @@ body{margin:0;overflow:hidden;font-family:Segoe UI,sans-serif;}
 <body>
 
 <div id="status-label">MODE: HIRO MARKER</div>
-<div id="gps-debug">GPS: waiting</div>
+<div id="gps-debug">GPS: waiting…</div>
 
 <div id="teacher-panel">
  <div style="text-align:center;"> TEACHER</div>
@@ -60,97 +74,43 @@ body{margin:0;overflow:hidden;font-family:Segoe UI,sans-serif;}
 </div>
 
 <a-scene embedded vr-mode-ui="enabled:false"
- arjs="sourceType:webcam;trackingMethod:best;locationEnabled:true;">
+ arjs="sourceType:webcam;trackingMethod:best;locationEnabled:true;debugUIEnabled:false;">
 
-<a-camera gps-camera="minDistance:5"
- look-controls cursor="rayOrigin:mouse"
- raycaster="objects:.clickable"></a-camera>
+<a-camera id="cam"
+ gps-camera="minDistance:1; maxDistance:100"
+ look-controls
+ cursor="rayOrigin:mouse"
+ raycaster="objects:.clickable">
+</a-camera>
 
-<!-- ================= CELL MODEL ================= -->
+<!-- CELL MODEL -->
 <a-entity id="cellModel">
 
-<!-- CELL MEMBRANE -->
-<a-entity>
- <a-sphere class="clickable" radius="1"
-  material="color:#ffddc1;opacity:.25;transparent:true"
-  data-title="Cell Membrane"
-  data-desc="Controls movement of substances in and out of the cell."></a-sphere>
+<a-sphere class="clickable" radius="1"
+ material="color:#ffddc1;opacity:.25;transparent:true"
+ data-title="Cell Membrane"
+ data-desc="Controls movement of substances in and out of the cell."></a-sphere>
 
- <a-text class="label" value="Cell Membrane"
-  position="0 1.1 0" scale="0.6 0.6 0.6"
-  align="center" look-at="[camera]"
-  color="yellow"></a-text>
-</a-entity>
+<a-text class="label" value="Cell Membrane"
+ position="0 1.1 0" scale="0.6 0.6 0.6"
+ align="center" look-at="#cam"
+ color="yellow"></a-text>
 
-<!-- NUCLEUS -->
-<a-entity position="0 0 0">
- <a-sphere class="clickable" radius="0.3" color="purple"
-  data-title="Nucleus"
-  data-desc="Controls cell activities and contains DNA."></a-sphere>
+<a-sphere class="clickable" radius="0.3" color="purple"
+ data-title="Nucleus"
+ data-desc="Controls cell activities and contains DNA."></a-sphere>
 
- <a-text class="label" value="Nucleus"
-  position="0 0.45 0" scale="0.5 0.5 0.5"
-  align="center" look-at="[camera]"
-  color="yellow"></a-text>
-</a-entity>
-
-<!-- NUCLEOLUS -->
-<a-entity position="0.05 0.05 0.05">
- <a-sphere class="clickable" radius="0.1" color="pink"
-  data-title="Nucleolus"
-  data-desc="Produces ribosomes inside the nucleus."></a-sphere>
-
- <a-text class="label" value="Nucleolus"
-  position="0 0.2 0" scale="0.4 0.4 0.4"
-  align="center" look-at="[camera]"
-  color="yellow"></a-text>
-</a-entity>
-
-<!-- MITOCHONDRIA -->
-<a-entity position="0.5 0.2 0.4">
- <a-sphere class="clickable" radius="0.15" color="orange"
-  data-title="Mitochondrion"
-  data-desc="Produces energy for the cell."></a-sphere>
-
- <a-text class="label" value="Mitochondrion"
-  position="0 0.25 0" scale="0.4 0.4 0.4"
-  align="center" look-at="[camera]"
-  color="yellow"></a-text>
-</a-entity>
-
-<!-- RIBOSOMES -->
-<a-entity position="0.3 0.1 -0.4">
- <a-sphere class="clickable" radius="0.05" color="brown"
-  data-title="Ribosomes"
-  data-desc="Site of protein synthesis."></a-sphere>
-
- <a-text class="label" value="Ribosomes"
-  position="0 0.15 0" scale="0.35 0.35 0.35"
-  align="center" look-at="[camera]"
-  color="yellow"></a-text>
-</a-entity>
-
-<!-- GOLGI -->
-<a-entity position="0.4 -0.3 -0.2">
- <a-box class="clickable" width="0.4" height="0.1" depth="0.3"
-  color="green"
-  data-title="Golgi Apparatus"
-  data-desc="Packages and transports proteins."></a-box>
-
- <a-text class="label" value="Golgi Apparatus"
-  position="0 0.2 0" scale="0.4 0.4 0.4"
-  align="center" look-at="[camera]"
-  color="yellow"></a-text>
-</a-entity>
+<a-text class="label" value="Nucleus"
+ position="0 0.45 0" scale="0.5 0.5 0.5"
+ align="center" look-at="#cam"
+ color="yellow"></a-text>
 
 </a-entity>
 
-<!-- MARKER -->
 <a-marker preset="hiro" id="cellMarker">
  <a-entity id="markerContainer"></a-entity>
 </a-marker>
 
-<!-- GPS -->
 <a-entity id="cellGPS"
  gps-entity-place="latitude:-13.9626; longitude:33.7741"
  visible="false">
@@ -160,7 +120,7 @@ body{margin:0;overflow:hidden;font-family:Segoe UI,sans-serif;}
 </a-scene>
 
 <script>
-let gpsMode=false,voiceOn=true,labelsOn=true;
+let gpsMode=false, voiceOn=true, labelsOn=true;
 const synth=window.speechSynthesis;
 
 window.onload=()=>{
@@ -169,11 +129,12 @@ window.onload=()=>{
  gpsContainer.appendChild(cell.cloneNode(true));
 
  document.querySelectorAll(".clickable").forEach(el=>{
-  el.onclick=e=>{
-   const t=e.target.dataset.title;
-   const d=e.target.dataset.desc;
-   if(t && voiceOn) synth.speak(new SpeechSynthesisUtterance(d));
-  };
+  el.addEventListener("click",e=>{
+   if(!voiceOn) return;
+   synth.speak(new SpeechSynthesisUtterance(
+    e.target.dataset.desc
+   ));
+  });
  });
 };
 
@@ -181,11 +142,11 @@ function toggleARMode(){
  gpsMode=!gpsMode;
  cellMarker.setAttribute("visible",!gpsMode);
  cellGPS.setAttribute("visible",gpsMode);
- document.getElementById("status-label").innerText=
-  gpsMode?"MODE: GPS LOCATION":"MODE: HIRO MARKER";
+ status-label.innerText=gpsMode?"MODE: GPS LOCATION":"MODE: HIRO MARKER";
+ instruction.innerText=gpsMode?"Walk outside":"Point at HIRO marker";
 }
 
-function toggleVoice(){voiceOn=!voiceOn;}
+function toggleVoice(){ voiceOn=!voiceOn; }
 
 function toggleLabels(){
  labelsOn=!labelsOn;
@@ -193,6 +154,12 @@ function toggleLabels(){
   l.setAttribute("visible",labelsOn);
  });
 }
+
+/* GPS DEBUG */
+window.addEventListener("gps-camera-update-position",e=>{
+ gps-debug.innerText =
+  `GPS active: ${e.detail.position.latitude.toFixed(5)}, ${e.detail.position.longitude.toFixed(5)}`;
+});
 </script>
 
 </body>
