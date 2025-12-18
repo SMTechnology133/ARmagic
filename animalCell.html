@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>JCE Animal Cell AR – FINAL FIX</title>
+<title>JCE Animal Cell AR – DYNAMIC TOOLTIP LABELS</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
@@ -18,12 +18,8 @@ body {
  font-family: Segoe UI, sans-serif;
 }
 
-/* IMPORTANT */
-a-scene {
- pointer-events: none;
-}
+a-scene { pointer-events: none; }
 
-/* UI always clickable */
 #teacher-panel, #help-bar, #status-label, #gps-debug {
  pointer-events: auto;
 }
@@ -38,7 +34,6 @@ a-scene {
  font-size: 11px;
  z-index: 999;
 }
-
 #status-label { top: 10px; }
 #gps-debug { top: 45px; }
 
@@ -54,7 +49,6 @@ a-scene {
  border: 1px solid orange;
  z-index: 999;
 }
-
 .teacher-btn {
  width: 100%;
  margin: 4px 0;
@@ -91,18 +85,17 @@ a-scene {
 <div id="teacher-panel">
  <div style="text-align:center;"> TEACHER</div>
  <button class="teacher-btn" onclick="toggleARMode(event)"> GPS / MARKER</button>
- <button class="teacher-btn" onclick="toggleLabels(event)"> LABELS</button>
  <button class="teacher-btn" onclick="toggleVoice(event)"> VOICE</button>
 </div>
 
 <div id="help-bar">
- <span id="instruction">Tap a button to start</span>
+ <span id="instruction">Tap a cell part to see label</span>
 </div>
 
 <a-scene
  embedded
  vr-mode-ui="enabled:false"
- arjs="sourceType:webcam;trackingMethod:best;locationEnabled:true;">
+ arjs="sourceType:webcam;trackingMethod:best;locationEnabled:true">
 
  <a-camera
   id="cam"
@@ -115,35 +108,18 @@ a-scene {
    class="clickable"
    radius="1"
    material="color:#ffddc1;opacity:0.25;transparent:true"
-   data-desc="Cell membrane controls movement in and out of the cell">
+   data-desc="Cell membrane controls movement in and out of the cell"
+   data-label="Cell Membrane">
   </a-sphere>
-
-  <a-text
-   class="label"
-   value="Cell Membrane"
-   position="0 1.1 0"
-   scale="0.6 0.6 0.6"
-   align="center"
-   look-at="#cam"
-   color="yellow">
-  </a-text>
 
   <a-sphere
    class="clickable"
    radius="0.3"
-   color="purple"
-   data-desc="Nucleus controls the cell and stores DNA">
-  </a-sphere>
-
-  <a-text
-   class="label"
-   value="Nucleus"
    position="0 0.45 0"
-   scale="0.5 0.5 0.5"
-   align="center"
-   look-at="#cam"
-   color="yellow">
-  </a-text>
+   color="purple"
+   data-desc="Nucleus controls the cell and stores DNA"
+   data-label="Nucleus">
+  </a-sphere>
  </a-entity>
 
  <a-marker preset="hiro" id="cellMarker">
@@ -161,7 +137,6 @@ a-scene {
 <script>
 let gpsMode = false;
 let voiceOn = true;
-let labelsOn = true;
 const synth = window.speechSynthesis;
 
 const statusLabel = document.getElementById("status-label");
@@ -175,19 +150,47 @@ const gpsContainer = document.getElementById("gpsContainer");
 window.onload = () => {
  const cell = document.getElementById("cellModel");
  markerContainer.appendChild(cell);
- gpsContainer.appendChild(cell.cloneNode(true));
+
+ const cellClone = cell.cloneNode(true);
+ gpsContainer.appendChild(cellClone);
+
+ addDynamicLabelEvents(cell);
+ addDynamicLabelEvents(cellClone);
 };
 
-/* USER-GESTURE GPS REQUEST */
+function addDynamicLabelEvents(container) {
+ container.querySelectorAll(".clickable").forEach(el => {
+  // Create a label above the sphere
+  const label = document.createElement("a-text");
+  label.setAttribute("value", el.getAttribute("data-label"));
+  label.setAttribute("scale", "0.6 0.6 0.6");
+  label.setAttribute("align", "center");
+  label.setAttribute("look-at", "#cam");
+  label.setAttribute("color", "yellow");
+  label.setAttribute("position", "0 1.1 0");
+  label.setAttribute("visible", "false");
+  el.appendChild(label); // attach directly to the sphere
+
+  el.addEventListener("click", () => {
+   // Toggle label visibility
+   const isVisible = label.getAttribute("visible");
+   label.setAttribute("visible", !isVisible);
+
+   // Voice description
+   if (voiceOn) {
+    const desc = el.getAttribute("data-desc") || "No description";
+    const utter = new SpeechSynthesisUtterance(desc);
+    synth.speak(utter);
+   }
+  });
+ });
+}
+
 function requestLocation() {
  if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
-   pos => {
-    gpsDebug.innerText = "GPS permission granted";
-   },
-   err => {
-    gpsDebug.innerText = "GPS denied";
-   }
+   pos => gpsDebug.innerText = "GPS permission granted",
+   err => gpsDebug.innerText = "GPS denied"
   );
  }
 }
@@ -208,14 +211,7 @@ function toggleVoice(e) {
  e.stopPropagation();
  voiceOn = !voiceOn;
  synth.cancel();
-}
-
-function toggleLabels(e) {
- e.stopPropagation();
- labelsOn = !labelsOn;
- document.querySelectorAll(".label").forEach(l =>
-  l.setAttribute("visible", labelsOn)
- );
+ e.target.innerText = voiceOn ? " VOICE" : " VOICE";
 }
 
 window.addEventListener("gps-camera-update-position", e => {
