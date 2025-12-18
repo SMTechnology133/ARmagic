@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>JCE Animal Cell AR – Fixed</title>
+<title>JCE Animal Cell AR – FINAL FIX</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
@@ -18,12 +18,12 @@ body {
  font-family: Segoe UI, sans-serif;
 }
 
-/* Allow interaction */
+/* IMPORTANT */
 a-scene {
- pointer-events: auto;
+ pointer-events: none;
 }
 
-/* UI elements */
+/* UI always clickable */
 #teacher-panel, #help-bar, #status-label, #gps-debug {
  pointer-events: auto;
 }
@@ -85,44 +85,37 @@ a-scene {
 
 <body>
 
-<!-- UI -->
 <div id="status-label">MODE: HIRO MARKER</div>
-<div id="gps-debug">GPS: waiting…</div>
+<div id="gps-debug">GPS: inactive</div>
 
 <div id="teacher-panel">
  <div style="text-align:center;"> TEACHER</div>
- <button class="teacher-btn" onclick="toggleARMode()"> GPS / MARKER</button>
- <button class="teacher-btn" onclick="toggleLabels()"> LABELS</button>
- <button class="teacher-btn" onclick="toggleVoice()"> VOICE</button>
+ <button class="teacher-btn" onclick="toggleARMode(event)"> GPS / MARKER</button>
+ <button class="teacher-btn" onclick="toggleLabels(event)"> LABELS</button>
+ <button class="teacher-btn" onclick="toggleVoice(event)"> VOICE</button>
 </div>
 
 <div id="help-bar">
- <span id="instruction">Point at HIRO marker</span>
+ <span id="instruction">Tap a button to start</span>
 </div>
 
-<!-- AR SCENE -->
 <a-scene
  embedded
  vr-mode-ui="enabled:false"
- arjs="sourceType:webcam;trackingMethod:best;locationEnabled:true;debugUIEnabled:false;">
+ arjs="sourceType:webcam;trackingMethod:best;locationEnabled:true;">
 
  <a-camera
   id="cam"
-  gps-camera="minDistance:1; maxDistance:100"
-  look-controls
-  cursor="rayOrigin:mouse"
-  raycaster="objects:.clickable">
+  gps-camera="simulateLatitude:-13.9626; simulateLongitude:33.7741"
+  look-controls-enabled="false">
  </a-camera>
 
- <!-- CELL MODEL -->
  <a-entity id="cellModel">
-
   <a-sphere
    class="clickable"
    radius="1"
    material="color:#ffddc1;opacity:0.25;transparent:true"
-   data-title="Cell Membrane"
-   data-desc="Controls movement of substances in and out of the cell.">
+   data-desc="Cell membrane controls movement in and out of the cell">
   </a-sphere>
 
   <a-text
@@ -139,8 +132,7 @@ a-scene {
    class="clickable"
    radius="0.3"
    color="purple"
-   data-title="Nucleus"
-   data-desc="Controls cell activities and contains DNA.">
+   data-desc="Nucleus controls the cell and stores DNA">
   </a-sphere>
 
   <a-text
@@ -152,17 +144,13 @@ a-scene {
    look-at="#cam"
    color="yellow">
   </a-text>
-
  </a-entity>
 
- <!-- MARKER MODE -->
  <a-marker preset="hiro" id="cellMarker">
   <a-entity id="markerContainer"></a-entity>
  </a-marker>
 
- <!-- GPS MODE -->
- <a-entity
-  id="cellGPS"
+ <a-entity id="cellGPS"
   gps-entity-place="latitude:-13.9626; longitude:33.7741"
   visible="false">
   <a-entity id="gpsContainer"></a-entity>
@@ -170,14 +158,12 @@ a-scene {
 
 </a-scene>
 
-<!-- JAVASCRIPT -->
 <script>
 let gpsMode = false;
 let voiceOn = true;
 let labelsOn = true;
 const synth = window.speechSynthesis;
 
-/* DOM references */
 const statusLabel = document.getElementById("status-label");
 const gpsDebug = document.getElementById("gps-debug");
 const instruction = document.getElementById("instruction");
@@ -188,48 +174,50 @@ const gpsContainer = document.getElementById("gpsContainer");
 
 window.onload = () => {
  const cell = document.getElementById("cellModel");
-
  markerContainer.appendChild(cell);
  gpsContainer.appendChild(cell.cloneNode(true));
-
- document.querySelectorAll(".clickable").forEach(el => {
-  el.addEventListener("click", e => {
-   if (!voiceOn) return;
-   synth.speak(
-    new SpeechSynthesisUtterance(e.target.dataset.desc)
-   );
-  });
- });
 };
 
-/* Buttons */
-function toggleARMode() {
- gpsMode = !gpsMode;
+/* USER-GESTURE GPS REQUEST */
+function requestLocation() {
+ if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+   pos => {
+    gpsDebug.innerText = "GPS permission granted";
+   },
+   err => {
+    gpsDebug.innerText = "GPS denied";
+   }
+  );
+ }
+}
 
+function toggleARMode(e) {
+ e.stopPropagation();
+ requestLocation();
+
+ gpsMode = !gpsMode;
  cellMarker.setAttribute("visible", !gpsMode);
  cellGPS.setAttribute("visible", gpsMode);
 
- statusLabel.innerText = gpsMode
-  ? "MODE: GPS LOCATION"
-  : "MODE: HIRO MARKER";
-
- instruction.innerText = gpsMode
-  ? "Walk outside to GPS location"
-  : "Point at HIRO marker";
+ statusLabel.innerText = gpsMode ? "MODE: GPS" : "MODE: MARKER";
+ instruction.innerText = gpsMode ? "Move outside" : "Point at marker";
 }
 
-function toggleVoice() {
+function toggleVoice(e) {
+ e.stopPropagation();
  voiceOn = !voiceOn;
+ synth.cancel();
 }
 
-function toggleLabels() {
+function toggleLabels(e) {
+ e.stopPropagation();
  labelsOn = !labelsOn;
- document.querySelectorAll(".label").forEach(l => {
-  l.setAttribute("visible", labelsOn);
- });
+ document.querySelectorAll(".label").forEach(l =>
+  l.setAttribute("visible", labelsOn)
+ );
 }
 
-/* GPS Debug */
 window.addEventListener("gps-camera-update-position", e => {
  gpsDebug.innerText =
   `GPS: ${e.detail.position.latitude.toFixed(5)}, ${e.detail.position.longitude.toFixed(5)}`;
