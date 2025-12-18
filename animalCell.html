@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,56 +6,86 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
+<!-- A-Frame & AR.js -->
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
 
 <style>
-body { margin:0; overflow:hidden; font-family:Segoe UI,sans-serif; }
+body {
+ margin: 0;
+ overflow: hidden;
+ font-family: Segoe UI, sans-serif;
+}
 
-a-scene { pointer-events:none; }
+/* Allow interaction */
+a-scene {
+ pointer-events: auto;
+}
 
+/* UI elements */
 #teacher-panel, #help-bar, #status-label, #gps-debug {
- pointer-events:auto;
+ pointer-events: auto;
 }
 
-#status-label,#gps-debug{
- position:fixed;left:10px;padding:6px 12px;
- background:rgba(0,0,0,.7);color:orange;
- border-radius:20px;font-size:11px;z-index:999;
-}
-#status-label{top:10px;}
-#gps-debug{top:45px;}
-
-#teacher-panel{
- position:fixed;top:10px;right:10px;
- background:rgba(60,60,60,.9);
- padding:10px;border-radius:12px;
- width:160px;color:orange;
- border:1px solid orange;z-index:999;
+#status-label, #gps-debug {
+ position: fixed;
+ left: 10px;
+ padding: 6px 12px;
+ background: rgba(0,0,0,.7);
+ color: orange;
+ border-radius: 20px;
+ font-size: 11px;
+ z-index: 999;
 }
 
-.teacher-btn{
- width:100%;margin:4px 0;
- padding:8px;border-radius:8px;
- background:#800000;color:orange;
- border:1px solid orange;
- font-size:11px;font-weight:bold;
+#status-label { top: 10px; }
+#gps-debug { top: 45px; }
+
+#teacher-panel {
+ position: fixed;
+ top: 10px;
+ right: 10px;
+ background: rgba(60,60,60,.9);
+ padding: 10px;
+ border-radius: 12px;
+ width: 160px;
+ color: orange;
+ border: 1px solid orange;
+ z-index: 999;
 }
 
-#help-bar{
- position:fixed;bottom:20px;left:50%;
- transform:translateX(-50%);
- background:rgba(128,0,0,.85);
- color:orange;padding:10px 20px;
- border-radius:30px;width:85%;
- text-align:center;z-index:999;
+.teacher-btn {
+ width: 100%;
+ margin: 4px 0;
+ padding: 8px;
+ border-radius: 8px;
+ background: #800000;
+ color: orange;
+ border: 1px solid orange;
+ font-size: 11px;
+ font-weight: bold;
+}
+
+#help-bar {
+ position: fixed;
+ bottom: 20px;
+ left: 50%;
+ transform: translateX(-50%);
+ background: rgba(128,0,0,.85);
+ color: orange;
+ padding: 10px 20px;
+ border-radius: 30px;
+ width: 85%;
+ text-align: center;
+ z-index: 999;
 }
 </style>
 </head>
 
 <body>
 
+<!-- UI -->
 <div id="status-label">MODE: HIRO MARKER</div>
 <div id="gps-debug">GPS: waiting…</div>
 
@@ -73,92 +100,139 @@ a-scene { pointer-events:none; }
  <span id="instruction">Point at HIRO marker</span>
 </div>
 
-<a-scene embedded vr-mode-ui="enabled:false"
+<!-- AR SCENE -->
+<a-scene
+ embedded
+ vr-mode-ui="enabled:false"
  arjs="sourceType:webcam;trackingMethod:best;locationEnabled:true;debugUIEnabled:false;">
 
-<a-camera id="cam"
- gps-camera="minDistance:1; maxDistance:100"
- look-controls
- cursor="rayOrigin:mouse"
- raycaster="objects:.clickable">
-</a-camera>
+ <a-camera
+  id="cam"
+  gps-camera="minDistance:1; maxDistance:100"
+  look-controls
+  cursor="rayOrigin:mouse"
+  raycaster="objects:.clickable">
+ </a-camera>
 
-<!-- CELL MODEL -->
-<a-entity id="cellModel">
+ <!-- CELL MODEL -->
+ <a-entity id="cellModel">
 
-<a-sphere class="clickable" radius="1"
- material="color:#ffddc1;opacity:.25;transparent:true"
- data-title="Cell Membrane"
- data-desc="Controls movement of substances in and out of the cell."></a-sphere>
+  <a-sphere
+   class="clickable"
+   radius="1"
+   material="color:#ffddc1;opacity:0.25;transparent:true"
+   data-title="Cell Membrane"
+   data-desc="Controls movement of substances in and out of the cell.">
+  </a-sphere>
 
-<a-text class="label" value="Cell Membrane"
- position="0 1.1 0" scale="0.6 0.6 0.6"
- align="center" look-at="#cam"
- color="yellow"></a-text>
+  <a-text
+   class="label"
+   value="Cell Membrane"
+   position="0 1.1 0"
+   scale="0.6 0.6 0.6"
+   align="center"
+   look-at="#cam"
+   color="yellow">
+  </a-text>
 
-<a-sphere class="clickable" radius="0.3" color="purple"
- data-title="Nucleus"
- data-desc="Controls cell activities and contains DNA."></a-sphere>
+  <a-sphere
+   class="clickable"
+   radius="0.3"
+   color="purple"
+   data-title="Nucleus"
+   data-desc="Controls cell activities and contains DNA.">
+  </a-sphere>
 
-<a-text class="label" value="Nucleus"
- position="0 0.45 0" scale="0.5 0.5 0.5"
- align="center" look-at="#cam"
- color="yellow"></a-text>
+  <a-text
+   class="label"
+   value="Nucleus"
+   position="0 0.45 0"
+   scale="0.5 0.5 0.5"
+   align="center"
+   look-at="#cam"
+   color="yellow">
+  </a-text>
 
-</a-entity>
+ </a-entity>
 
-<a-marker preset="hiro" id="cellMarker">
- <a-entity id="markerContainer"></a-entity>
-</a-marker>
+ <!-- MARKER MODE -->
+ <a-marker preset="hiro" id="cellMarker">
+  <a-entity id="markerContainer"></a-entity>
+ </a-marker>
 
-<a-entity id="cellGPS"
- gps-entity-place="latitude:-13.9626; longitude:33.7741"
- visible="false">
- <a-entity id="gpsContainer"></a-entity>
-</a-entity>
+ <!-- GPS MODE -->
+ <a-entity
+  id="cellGPS"
+  gps-entity-place="latitude:-13.9626; longitude:33.7741"
+  visible="false">
+  <a-entity id="gpsContainer"></a-entity>
+ </a-entity>
 
 </a-scene>
 
+<!-- JAVASCRIPT -->
 <script>
-let gpsMode=false, voiceOn=true, labelsOn=true;
-const synth=window.speechSynthesis;
+let gpsMode = false;
+let voiceOn = true;
+let labelsOn = true;
+const synth = window.speechSynthesis;
 
-window.onload=()=>{
- const cell=document.getElementById("cellModel");
+/* DOM references */
+const statusLabel = document.getElementById("status-label");
+const gpsDebug = document.getElementById("gps-debug");
+const instruction = document.getElementById("instruction");
+const cellMarker = document.getElementById("cellMarker");
+const cellGPS = document.getElementById("cellGPS");
+const markerContainer = document.getElementById("markerContainer");
+const gpsContainer = document.getElementById("gpsContainer");
+
+window.onload = () => {
+ const cell = document.getElementById("cellModel");
+
  markerContainer.appendChild(cell);
  gpsContainer.appendChild(cell.cloneNode(true));
 
- document.querySelectorAll(".clickable").forEach(el=>{
-  el.addEventListener("click",e=>{
-   if(!voiceOn) return;
-   synth.speak(new SpeechSynthesisUtterance(
-    e.target.dataset.desc
-   ));
+ document.querySelectorAll(".clickable").forEach(el => {
+  el.addEventListener("click", e => {
+   if (!voiceOn) return;
+   synth.speak(
+    new SpeechSynthesisUtterance(e.target.dataset.desc)
+   );
   });
  });
 };
 
-function toggleARMode(){
- gpsMode=!gpsMode;
- cellMarker.setAttribute("visible",!gpsMode);
- cellGPS.setAttribute("visible",gpsMode);
- status-label.innerText=gpsMode?"MODE: GPS LOCATION":"MODE: HIRO MARKER";
- instruction.innerText=gpsMode?"Walk outside":"Point at HIRO marker";
+/* Buttons */
+function toggleARMode() {
+ gpsMode = !gpsMode;
+
+ cellMarker.setAttribute("visible", !gpsMode);
+ cellGPS.setAttribute("visible", gpsMode);
+
+ statusLabel.innerText = gpsMode
+  ? "MODE: GPS LOCATION"
+  : "MODE: HIRO MARKER";
+
+ instruction.innerText = gpsMode
+  ? "Walk outside to GPS location"
+  : "Point at HIRO marker";
 }
 
-function toggleVoice(){ voiceOn=!voiceOn; }
+function toggleVoice() {
+ voiceOn = !voiceOn;
+}
 
-function toggleLabels(){
- labelsOn=!labelsOn;
- document.querySelectorAll(".label").forEach(l=>{
-  l.setAttribute("visible",labelsOn);
+function toggleLabels() {
+ labelsOn = !labelsOn;
+ document.querySelectorAll(".label").forEach(l => {
+  l.setAttribute("visible", labelsOn);
  });
 }
 
-/* GPS DEBUG */
-window.addEventListener("gps-camera-update-position",e=>{
- gps-debug.innerText =
-  `GPS active: ${e.detail.position.latitude.toFixed(5)}, ${e.detail.position.longitude.toFixed(5)}`;
+/* GPS Debug */
+window.addEventListener("gps-camera-update-position", e => {
+ gpsDebug.innerText =
+  `GPS: ${e.detail.position.latitude.toFixed(5)}, ${e.detail.position.longitude.toFixed(5)}`;
 });
 </script>
 
