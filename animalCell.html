@@ -1,9 +1,15 @@
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JCE Biology AR - Detailed Organelles</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>JCE Biology AR - Advanced Organelles</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
@@ -14,13 +20,11 @@
         #status-label { position: absolute; left: 10px; top: 10px; padding: 6px 12px; background: rgba(0,0,0,0.8); color: #00FF00; border-radius: 20px; font-size: 11px; }
         #teacher-panel { position: absolute; top: 10px; right: 10px; background: rgba(30,30,30,0.95); padding: 10px; border-radius: 12px; width: 155px; border: 2px solid #800000; }
         .teacher-btn { width: 100%; margin: 4px 0; padding: 10px; border-radius: 8px; background: #800000; color: white; border: 1px solid orange; font-size: 10px; font-weight: bold; cursor: pointer; }
-        #help-bar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 15px 25px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #00FF00; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
-        .a-canvas { width: 100% !important; height: 100% !important; }
+        #help-bar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 15px 25px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #00FF00; }
     </style>
 </head>
 
 <body>
-
     <div id="ui-layer">
         <div id="status-label">MODE: MARKER</div>
         <div id="teacher-panel" class="interactable-ui">
@@ -33,75 +37,68 @@
             <button class="teacher-btn" onclick="resetLabels()" style="background: #333;"> RESET</button>
         </div>
         <div id="help-bar">
-            <span id="instruction">Tap an organelle to learn its function</span>
+            <span id="instruction">Point camera at Hiro marker</span>
         </div>
     </div>
 
-    <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;">
+    <a-scene embedded vr-mode-ui="enabled: false" 
+             arjs="sourceType: webcam; debugUIEnabled: false;"
+             cursor="rayOrigin: mouse" raycaster="objects: .clickable">
 
         <a-entity id="cam-wrapper">
             <a-camera id="cam" gps-camera rotation-reader></a-camera>
         </a-entity>
 
         <a-entity id="cellTemplate" visible="false">
-            <a-circle rotation="-90 0 0" position="0 -1.8 0" radius="2" color="black" opacity="0.3"></a-circle>
-
-            <a-sphere class="clickable" radius="1.6" material="color:#ade8f4; opacity:0.15; transparent:true; side:double" 
-                data-label="Cell Membrane" 
-                data-desc="The Cell Membrane is semi-permeable. It acts like a gatekeeper, controlling which nutrients enter and which waste products leave the cell.">
+            <a-sphere class="clickable" radius="2.2" material="color:#ade8f4; opacity:0.1; transparent:true; side:double" 
+                data-label="Cell Membrane" data-desc="The outer boundary that regulates what enters and leaves the cell.">
             </a-sphere>
 
             <a-entity position="0 0 0">
-                <a-sphere class="clickable" radius="0.5" color="#5a189a" 
-                    data-label="Nucleus" 
-                    data-desc="The Nucleus is the control center. It contains DNA, which are the instructions for building and operating the entire organism.">
-                    <a-sphere radius="0.15" color="#240046" position="0.1 0.1 0.2"></a-sphere>
+                <a-sphere class="clickable" radius="0.6" color="#5a189a" 
+                    data-label="Nucleus" data-desc="The control center. It holds the genetic material (DNA).">
+                </a-sphere>
+                
+                <a-torus class="clickable" radius="0.8" tube="0.05" color="#ff4d6d" rotation="90 0 0"
+                    data-label="Rough ER" data-desc="Studded with ribosomes. It helps in protein synthesis and transport.">
+                    <a-sphere position="0.8 0 0" radius="0.03" color="black"></a-sphere>
+                    <a-sphere position="-0.8 0 0" radius="0.03" color="black"></a-sphere>
+                </a-torus>
+            </a-entity>
+
+            <a-entity position="-0.9 0.2 0.5" rotation="0 45 0">
+                <a-torus class="clickable" radius="0.4" tube="0.04" color="#70e000" arc="180"
+                    data-label="Smooth ER" data-desc="Makes lipids (fats) and detoxifies the cell. It has no ribosomes.">
+                </a-torus>
+            </a-entity>
+
+            <a-entity position="1.1 -0.5 0.8" rotation="45 30 0">
+                <a-sphere class="clickable" radius="0.3" scale="2 1 1" color="#d00000" 
+                    data-label="Mitochondria" data-desc="The powerhouse of the cell. Produces ATP energy.">
                 </a-sphere>
             </a-entity>
 
-            <a-entity position="0.8 -0.4 0.6" rotation="45 30 0">
-                <a-sphere class="clickable" radius="0.25" scale="2 1 1" color="#d00000" 
-                    data-label="Mitochondria" 
-                    data-desc="Known as the Powerhouse! It performs cellular respiration to convert glucose into energy (ATP). The inner folds increase surface area for more energy production.">
-                    <a-torus radius="0.1" tube="0.02" color="orange" rotation="90 0 0"></a-torus>
-                </a-sphere>
-            </a-entity>
-
-            <a-entity position="-0.7 0.5 -0.5" rotation="0 45 0">
-                <a-cylinder class="clickable" radius="0.3" height="0.05" color="#ffb703" scale="1 0.5 1.5"
-                    data-label="Golgi Apparatus" 
-                    data-desc="The Golgi acts like a post office. It modifies, sorts, and packages proteins for secretion or delivery to other organelles.">
-                </a-cylinder>
-                <a-cylinder radius="0.25" height="0.05" color="#fb8500" position="0 0.1 0" scale="1 0.5 1.5"></a-cylinder>
-            </a-entity>
-
-            <a-sphere class="clickable" radius="0.3" position="-0.5 -0.6 0.4" color="#48cae4" opacity="0.6"
-                data-label="Vacuole" 
-                data-desc="In animal cells, vacuoles are small and temporary. They store water, food, or waste products.">
+            <a-sphere class="clickable" position="0.5 0.8 -0.5" radius="0.05" color="#000"
+                data-label="Ribosome" data-desc="Smallest organelle. This is where proteins are made.">
             </a-sphere>
         </a-entity>
 
         <a-marker preset="hiro" id="markerTarget">
-            <a-entity id="markerContainer" rotation="-90 0 0"></a-entity>
+            <a-entity id="markerContainer" rotation="-90 0 0" scale="0.5 0.5 0.5"></a-entity>
         </a-marker>
 
-        <a-entity id="gpsTarget" gps-entity-place="latitude: -13.9626; longitude: 33.7741" visible="false">
-            <a-entity id="gpsContainer" scale="15 15 15"></a-entity>
-        </a-entity>
-
-        <a-entity id="freeRoamContainer" visible="false"></a-entity>
-
+        <a-entity id="freeRoamContainer" position="0 0 -4" visible="false"></a-entity>
     </a-scene>
 
 <script>
-let modes = ["MARKER", "GPS", "FREE ROAM"];
+// ... Same JS logic as before ...
 let currentModeIdx = 0;
+let modes = ["MARKER", "FREE ROAM"];
 const synth = window.speechSynthesis;
 
 window.onload = () => {
     const template = document.getElementById("cellTemplate");
-    const targets = ["markerContainer", "gpsContainer", "freeRoamContainer"];
-    targets.forEach(id => {
+    ["markerContainer", "freeRoamContainer"].forEach(id => {
         const clone = template.cloneNode(true);
         clone.setAttribute("visible", "true");
         document.getElementById(id).appendChild(clone);
@@ -115,31 +112,18 @@ function initInteractions(container) {
         label.setAttribute("value", el.getAttribute("data-label"));
         label.setAttribute("align", "center");
         label.setAttribute("look-at", "#cam");
-        label.setAttribute("color", "white");
-        label.setAttribute("position", "0 1.2 0");
-        label.setAttribute("scale", "1.5 1.5 1.5");
+        label.setAttribute("position", "0 1 0");
         label.setAttribute("visible", "false");
         label.classList.add("label-text");
-        
-        // Add a background plane for the label to make it readable
-        const bg = document.createElement("a-plane");
-        bg.setAttribute("width", "1.5"); bg.setAttribute("height", "0.4");
-        bg.setAttribute("color", "#800000"); bg.setAttribute("position", "0 0 -0.01");
-        label.appendChild(bg);
         el.appendChild(label);
 
-        el.addEventListener("click", (e) => {
+        el.addEventListener("mousedown", (e) => {
             e.stopPropagation();
-            const isVis = label.getAttribute("visible") === "true";
-            document.querySelectorAll(".label-text").forEach(l => l.setAttribute("visible", "false")); // Close others
-            label.setAttribute("visible", !isVis);
-            if (!isVis) {
-                synth.cancel();
-                const utter = new SpeechSynthesisUtterance(el.getAttribute("data-desc"));
-                utter.rate = 0.9; // Slightly slower for clarity
-                synth.speak(utter);
-                document.getElementById("instruction").innerText = el.getAttribute("data-label") + ": " + el.getAttribute("data-desc");
-            }
+            resetLabels();
+            label.setAttribute("visible", "true");
+            const utter = new SpeechSynthesisUtterance(el.getAttribute("data-desc"));
+            synth.speak(utter);
+            document.getElementById("instruction").innerText = el.getAttribute("data-label");
         });
     });
 }
@@ -149,25 +133,11 @@ function cycleMode() {
     const mode = modes[currentModeIdx];
     document.getElementById("status-label").innerText = "MODE: " + mode;
     document.getElementById("markerTarget").setAttribute("visible", mode === "MARKER");
-    document.getElementById("gpsTarget").setAttribute("visible", mode === "GPS");
     document.getElementById("freeRoamContainer").setAttribute("visible", mode === "FREE ROAM");
-    document.getElementById("instruction").innerText = "Switching to " + mode + " Mode...";
 }
 
-window.addEventListener('click', function() {
-    if (modes[currentModeIdx] === "FREE ROAM") {
-        const container = document.getElementById("freeRoamContainer");
-        const cam = document.getElementById("cam");
-        const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.object3D.quaternion);
-        const targetPos = new THREE.Vector3().addVectors(cam.object3D.position, direction.multiplyScalar(4));
-        container.setAttribute("position", `${targetPos.x} -1 ${targetPos.z}`);
-        container.setAttribute("visible", "true");
-    }
-});
-
 function adjustScale(m) {
-    const id = modes[currentModeIdx] === "MARKER" ? "markerContainer" : 
-               modes[currentModeIdx] === "GPS" ? "gpsContainer" : "freeRoamContainer";
+    const id = modes[currentModeIdx] === "MARKER" ? "markerContainer" : "freeRoamContainer";
     const el = document.getElementById(id);
     const s = el.getAttribute("scale");
     el.setAttribute("scale", `${s.x * m} ${s.y * m} ${s.z * m}`);
@@ -175,23 +145,11 @@ function adjustScale(m) {
 
 function resetLabels() {
     document.querySelectorAll(".label-text").forEach(l => l.setAttribute("visible", "false"));
-    document.getElementById("instruction").innerText = "Tap an organelle to learn its function";
     synth.cancel();
 }
 
 function takeScreenshot() {
-    const scene = document.querySelector('a-scene');
-    const video = document.querySelector('video');
-    const canvas = scene.canvas;
-    const merge = document.createElement('canvas');
-    merge.width = canvas.width; merge.height = canvas.height;
-    const ctx = merge.getContext('2d');
-    ctx.drawImage(video, 0, 0, merge.width, merge.height);
-    ctx.drawImage(canvas, 0, 0, merge.width, merge.height);
-    const link = document.createElement('a');
-    link.download = "Bio_Discovery.png";
-    link.href = merge.toDataURL();
-    link.click();
+    document.querySelector('a-scene').components.screenshot.capture('perspective');
 }
 </script>
 </body>
