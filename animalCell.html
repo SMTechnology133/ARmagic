@@ -1,283 +1,230 @@
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>JCE Biology AR - World-Anchored</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
-    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-    <!-- Add Three.js for vector calculations -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
-        .interactable-ui { pointer-events: auto; }
-        
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-        
-        #status-label { position: absolute; left: 10px; top: 10px; padding: 6px 12px; background: rgba(0,0,0,0.8); color: #00FF00; border-radius: 20px; font-size: 11px; font-weight: bold; border: 1px solid #00FF00; }
-        #gps-info { position: absolute; left: 10px; top: 55px; padding: 12px; background: rgba(0,0,0,0.85); color: #00FF00; border-radius: 8px; font-size: 10px; display: none; border: 1px solid #00FF00; }
-        
-        #teacher-panel { position: absolute; top: 10px; right: 10px; background: rgba(20,20,20,0.95); padding: 10px; border-radius: 12px; width: 160px; border: 2px solid #800000; }
-        .teacher-btn { width: 100%; margin: 4px 0; padding: 10px; border-radius: 8px; background: #800000; color: white; border: 1px solid orange; font-size: 10px; font-weight: bold; cursor: pointer; }
-        #help-bar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 15px 25px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #00FF00; font-size: 13px; }
-    </style>
+<meta charset="UTF-8">
+<title>JCE Biology AR - World-Anchored</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+<script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+
+<style>
+body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font-family:'Segoe UI',sans-serif;}
+#ui-layer { position:fixed; inset:0; pointer-events:none; z-index:1000;}
+.interactable-ui { pointer-events:auto; }
+
+#overlay {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.9);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  color:white; z-index:9999; text-align:center;
+}
+
+#status-label {
+  position:absolute; left:10px; top:10px;
+  padding:6px 12px;
+  background:rgba(0,0,0,0.8);
+  color:#00ff00;
+  border-radius:20px;
+  font-size:11px;
+  border:1px solid #00ff00;
+}
+
+#gps-info {
+  position:absolute; left:10px; top:55px;
+  padding:10px;
+  background:rgba(0,0,0,0.85);
+  color:#00ff00;
+  border-radius:8px;
+  font-size:10px;
+  display:none;
+  border:1px solid #00ff00;
+}
+
+#teacher-panel {
+  position:absolute; top:10px; right:10px;
+  background:rgba(20,20,20,0.95);
+  padding:10px;
+  border-radius:12px;
+  width:160px;
+  border:2px solid #800000;
+}
+
+.teacher-btn {
+  width:100%; margin:4px 0;
+  padding:10px;
+  border-radius:8px;
+  background:#800000;
+  color:white;
+  border:1px solid orange;
+  font-size:10px;
+  font-weight:bold;
+}
+
+#help-bar {
+  position:absolute; bottom:30px; left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.85);
+  color:white;
+  padding:15px 25px;
+  border-radius:30px;
+  width:85%;
+  text-align:center;
+  border:1px solid #00ff00;
+  font-size:13px;
+  pointer-events:auto;
+}
+</style>
 </head>
 
 <body>
-    <div id="overlay" class="interactable-ui">
-        <h2>JCE Biology AR</h2>
-        <p>This app requires camera and motion access<br>to place the cell in the real world.</p>
-        <button class="teacher-btn" style="width: 200px; font-size: 16px;" onclick="startApp()"> START AR</button>
-    </div>
 
-    <div id="ui-layer">
-        <div id="status-label">MODE: HIRO MARKER</div>
-        
-        <div id="gps-info">
-            <b style="color:white"> GPS LIVE DATA</b><br>
-            Distance: <span id="gps-dist">---</span>m<br>
-            Current Lat: <span id="curr-lat">0.00</span><br>
-            Current Lon: <span id="curr-lon">0.00</span>
-        </div>
+<div id="overlay" class="interactable-ui">
+  <h2>JCE Biology AR</h2>
+  <p>This app requires camera and motion access</p>
+  <button class="teacher-btn" style="width:200px;font-size:16px" onclick="startApp()"> START AR</button>
+</div>
 
-        <div id="teacher-panel" class="interactable-ui">
-            <button class="teacher-btn" onclick="cycleMode()"> SWITCH MODE</button>
-            <button id="gps-action-btn" class="teacher-btn" style="display:none; background:#004d00;" onclick="dropAtCurrentLocation()"> ANCHOR HERE</button>
-            <div style="display:flex; justify-content: space-between;">
-                <button class="teacher-btn" style="width:48%" onclick="adjustScale(1.2)"></button>
-                <button class="teacher-btn" style="width:48%" onclick="adjustScale(0.8)"></button>
-            </div>
-            <button class="teacher-btn" onclick="takeScreenshot()"> SCREENSHOT</button>
-        </div>
-        
-        <div id="help-bar">
-            <span id="instruction">Point camera at Hiro Marker</span>
-        </div>
-    </div>
+<div id="ui-layer">
+  <div id="status-label">MODE: HIRO MARKER</div>
 
-    <a-scene 
-        embedded 
-        vr-mode-ui="enabled: false" 
-        arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
-        cursor="rayOrigin: mouse" 
-        raycaster="objects: .clickable"
-        device-orientation-permission-ui="enabled: true"
-        screenshot="width: 1280; height: 720">
+  <div id="gps-info">
+    <b style="color:white"> GPS LIVE DATA</b><br>
+    Distance: <span id="gps-dist">---</span> m<br>
+    Lat: <span id="curr-lat">0.0000</span><br>
+    Lon: <span id="curr-lon">0.0000</span>
+  </div>
 
-        <a-entity id="cam-wrapper">
-            <!-- Fixed: Added missing "gps-camera" component -->
-            <a-camera id="cam" gps-camera rotation-reader look-controls="enabled: false"></a-camera>
-        </a-entity>
+  <div id="teacher-panel" class="interactable-ui">
+    <button class="teacher-btn" onclick="cycleMode()"> SWITCH MODE</button>
+    <button id="gps-action-btn" class="teacher-btn" style="display:none;background:#004d00" onclick="dropAtCurrentLocation()"> ANCHOR HERE</button>
+    <button class="teacher-btn" onclick="adjustScale(1.2)"> SCALE</button>
+    <button class="teacher-btn" onclick="adjustScale(0.8)"> SCALE</button>
+  </div>
 
-        <a-entity id="cellTemplate" visible="false">
-             <a-circle rotation="-90 0 0" radius="2.5" color="black" opacity="0.4" position="0 -2 0"></a-circle>
+  <div id="help-bar" onclick="placeFreeRoam()">Tap to place object</div>
+</div>
 
-             <a-sphere class="clickable" radius="2" material="color:#4cc9f0; opacity:0.15; transparent:true; side:double" 
-                data-label="Cell Membrane" data-desc="The semi-permeable boundary."
-                animation="property: scale; to: 1.05 1.05 1.05; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
-             </a-sphere>
-             
-             <a-sphere class="clickable" radius="0.5" color="#7209b7" 
-                data-label="Nucleus" data-desc="Control center containing DNA."
-                animation="property: material.emissive; from: #000; to: #3b015e; dir: alternate; dur: 1500; loop: true">
-             </a-sphere>
-             
-             <a-entity position="1 -0.5 0.5" rotation="45 30 0">
-                <a-sphere class="clickable" radius="0.25" scale="2 1 1" color="#f72585" data-label="Mitochondria" data-desc="Energy powerhouse."></a-sphere>
-             </a-entity>
-        </a-entity>
+<a-scene embedded
+  vr-mode-ui="enabled:false"
+  arjs="sourceType:webcam;debugUIEnabled:false"
+  device-orientation-permission-ui="enabled:true">
 
-        <a-marker preset="hiro" id="markerTarget">
-            <a-entity id="markerContainer" rotation="-90 0 0" scale="0.4 0.4 0.4"></a-entity>
-        </a-marker>
+  <a-camera gps-camera rotation-reader></a-camera>
 
-        <!-- Fixed: Set initial GPS coordinates to something reasonable -->
-        <a-entity id="gpsTarget" gps-entity-place="latitude: 0; longitude: 0" visible="false">
-            <a-entity id="gpsContainer" scale="15 15 15"></a-entity>
-        </a-entity>
+  <a-entity id="cellTemplate" visible="false">
+    <a-sphere radius="2" material="color:#4cc9f0;opacity:0.2;transparent:true"></a-sphere>
+    <a-sphere radius="0.5" color="#7209b7"></a-sphere>
+    <a-text value="Animal Cell" position="0 2.5 0" align="center" look-at="[gps-camera]" color="white"></a-text>
+  </a-entity>
 
-        <a-entity id="freeRoamContainer" scale="15 15 15" visible="false"></a-entity>
+  <a-marker preset="hiro" id="markerTarget">
+    <a-entity id="markerContainer" scale="0.4 0.4 0.4"></a-entity>
+  </a-marker>
 
-    </a-scene>
+  <a-entity id="gpsTarget" gps-entity-place="latitude:0;longitude:0" visible="false">
+    <a-entity id="gpsContainer" scale="20 20 20"></a-entity>
+  </a-entity>
+
+  <a-entity id="freeRoamContainer" visible="false"></a-entity>
+</a-scene>
 
 <script>
-let modes = ["HIRO MARKER", "GPS ANCHOR", "FREE ROAM"];
-let currentModeIdx = 0;
-const synth = window.speechSynthesis;
-let gpsPermissionGranted = false;
+const modes = ["HIRO MARKER","GPS ANCHOR","FREE ROAM"];
+let modeIndex = 0;
+let gpsReady = false;
+
+const statusLabel = document.getElementById("status-label");
+const gpsInfo = document.getElementById("gps-info");
+const gpsActionBtn = document.getElementById("gps-action-btn");
+const helpBar = document.getElementById("help-bar");
+const gpsDist = document.getElementById("gps-dist");
+const currLat = document.getElementById("curr-lat");
+const currLon = document.getElementById("curr-lon");
 
 function startApp() {
-    // Request location permission
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                gpsPermissionGranted = true;
-                document.getElementById('overlay').style.display = 'none';
-                console.log("GPS permission granted");
-            },
-            function(error) {
-                alert("Please enable location services for GPS mode to work");
-                document.getElementById('overlay').style.display = 'none';
-            },
-            {enableHighAccuracy: true, timeout: 5000, maximumAge: 0}
-        );
-    } else {
-        alert("Geolocation not supported");
-    }
-    
-    // Request motion permission for iOS
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-            .then(permissionState => {
-                if (permissionState === 'granted') {
-                    console.log("Motion permission granted");
-                }
-            })
-            .catch(console.error);
-    }
+  document.getElementById("overlay").style.display="none";
+  navigator.geolocation.getCurrentPosition(
+    () => gpsReady = true,
+    () => alert("GPS disabled")
+  );
 }
 
 window.onload = () => {
-    const template = document.getElementById("cellTemplate");
-    ["markerContainer", "gpsContainer", "freeRoamContainer"].forEach(id => {
-        const clone = template.cloneNode(true);
-        clone.setAttribute("visible", "true");
-        document.getElementById(id).appendChild(clone);
-        initInteractions(clone);
-    });
+  const tpl = document.getElementById("cellTemplate");
+  ["markerContainer","gpsContainer","freeRoamContainer"].forEach(id=>{
+    const c = tpl.cloneNode(true);
+    c.setAttribute("visible","true");
+    document.getElementById(id).appendChild(c);
+  });
 
-    // FIXED: Correct event names for AR.js
-    window.addEventListener('gps-camera-update-position', (ev) => {
-        if (ev.detail && ev.detail.position) {
-            document.getElementById('curr-lat').innerText = ev.detail.position.latitude.toFixed(4);
-            document.getElementById('curr-lon').innerText = ev.detail.position.longitude.toFixed(4);
-        }
-    });
+  window.addEventListener("gps-camera-update-position", e=>{
+    if(e.detail?.position){
+      currLat.textContent = e.detail.position.latitude.toFixed(4);
+      currLon.textContent = e.detail.position.longitude.toFixed(4);
+    }
+  });
 
-    // FIXED: Correct event name (typo in original)
-    document.getElementById('gpsTarget').addEventListener('gps-entity-place-update-position', (ev) => {
-        if (ev.detail && ev.detail.distance) {
-            document.getElementById('gps-dist').innerText = ev.detail.distance.toFixed(1);
-        }
+  document.getElementById("gpsTarget")
+    .addEventListener("gps-entity-place-update-position", e=>{
+      if(e.detail?.distance){
+        gpsDist.textContent = e.detail.distance.toFixed(1);
+      }
     });
 };
 
-// WORLD PLACEMENT: This forces the figure to anchor "outside" in the world
-window.addEventListener('click', (e) => {
-    if (modes[currentModeIdx] === "FREE ROAM" && e.target.id !== "overlay") {
-        const container = document.getElementById("freeRoamContainer");
-        const cam = document.getElementById("cam");
-        
-        // Get camera position and rotation from A-Frame
-        const camPos = cam.getAttribute('position');
-        const camRot = cam.getAttribute('rotation');
-        
-        // Convert degrees to radians
-        const yawRad = THREE.MathUtils.degToRad(camRot.y);
-        
-        // Calculate position 3 meters in front of camera
-        const distance = 3;
-        const newX = camPos.x + Math.sin(yawRad) * distance;
-        const newZ = camPos.z + Math.cos(yawRad) * distance;
-        
-        container.setAttribute("position", `${newX} ${camPos.y - 1.6} ${newZ}`);
-        container.setAttribute("visible", "true");
-        document.getElementById("instruction").innerText = "Cell placed 3m in front of you!";
-    }
-});
+function cycleMode(){
+  modeIndex = (modeIndex+1)%modes.length;
+  const m = modes[modeIndex];
 
-function initInteractions(container) {
-    container.querySelectorAll(".clickable").forEach(el => {
-        const label = document.createElement("a-text");
-        label.setAttribute("value", el.getAttribute("data-label"));
-        label.setAttribute("align", "center");
-        label.setAttribute("look-at", "#cam");
-        label.setAttribute("position", "0 1.2 0");
-        label.setAttribute("visible", "false");
-        label.classList.add("label-text");
-        el.appendChild(label);
+  statusLabel.innerText = "MODE: "+m;
+  document.getElementById("markerTarget").setAttribute("visible", m==="HIRO MARKER");
+  document.getElementById("gpsTarget").setAttribute("visible", m==="GPS ANCHOR");
+  gpsInfo.style.display = m==="GPS ANCHOR"?"block":"none";
+  gpsActionBtn.style.display = m==="GPS ANCHOR"?"block":"none";
+  document.getElementById("freeRoamContainer").object3D.visible = false;
 
-        el.addEventListener("mousedown", (e) => {
-            e.stopPropagation();
-            resetLabels();
-            label.setAttribute("visible", "true");
-            synth.cancel();
-            const utter = new SpeechSynthesisUtterance(el.getAttribute("data-desc"));
-            synth.speak(utter);
-            document.getElementById("instruction").innerText = el.getAttribute("data-label");
-        });
-    });
+  helpBar.innerText =
+    m==="FREE ROAM"?"Tap to place object":
+    m==="HIRO MARKER"?"Point camera at Hiro Marker":
+    "Walk outside then tap ANCHOR";
 }
 
-function cycleMode() {
-    currentModeIdx = (currentModeIdx + 1) % modes.length;
-    const mode = modes[currentModeIdx];
-    document.getElementById("status-label").innerText = "MODE: " + mode;
-    
-    document.getElementById("gps-info").style.display = (mode === "GPS ANCHOR") ? "block" : "none";
-    document.getElementById("gps-action-btn").style.display = (mode === "GPS ANCHOR") ? "block" : "none";
-    
-    document.getElementById("markerTarget").setAttribute("visible", mode === "HIRO MARKER");
-    document.getElementById("gpsTarget").setAttribute("visible", mode === "GPS ANCHOR");
-    document.getElementById("freeRoamContainer").setAttribute("visible", mode === "FREE ROAM");
-
-    if(mode === "FREE ROAM") document.getElementById("instruction").innerText = "Tap anywhere to place the cell";
-    else if(mode === "HIRO MARKER") document.getElementById("instruction").innerText = "Point at Hiro Marker";
-    else document.getElementById("instruction").innerText = "Tap 'Anchor' to place cell at your location";
+function dropAtCurrentLocation(){
+  if(!gpsReady) return alert("GPS not ready");
+  navigator.geolocation.getCurrentPosition(p=>{
+    document.getElementById("gpsTarget")
+      .setAttribute("gps-entity-place",{
+        latitude:p.coords.latitude,
+        longitude:p.coords.longitude
+      });
+  });
 }
 
-function dropAtCurrentLocation() {
-    if (!gpsPermissionGranted) {
-        alert("Please enable location services first");
-        return;
-    }
-    
-    navigator.geolocation.getCurrentPosition((position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        
-        // Update GPS entity place
-        const gpsTarget = document.getElementById('gpsTarget');
-        gpsTarget.setAttribute('gps-entity-place', {
-            latitude: lat,
-            longitude: lon
-        });
-        gpsTarget.setAttribute('visible', 'true');
-        
-        document.getElementById("instruction").innerText = "Cell anchored to your coordinates!";
-    }, (error) => {
-        alert("Failed to get location: " + error.message);
-    }, {enableHighAccuracy: true});
+function placeFreeRoam(){
+  if(modes[modeIndex]!=="FREE ROAM") return;
+  const c = document.getElementById("freeRoamContainer");
+  c.object3D.position.set(0,-1.2,-3);
+  c.object3D.visible = true;
 }
 
-function adjustScale(multiplier) {
-    const activeId = (modes[currentModeIdx] === "HIRO MARKER") ? "markerContainer" : 
-                     (modes[currentModeIdx] === "GPS ANCHOR") ? "gpsContainer" : "freeRoamContainer";
-    const el = document.getElementById(activeId);
-    const currentScale = el.getAttribute("scale");
-    const newScale = {
-        x: currentScale.x * multiplier,
-        y: currentScale.y * multiplier,
-        z: currentScale.z * multiplier
-    };
-    el.setAttribute("scale", newScale);
-}
-
-function resetLabels() {
-    document.querySelectorAll(".label-text").forEach(l => l.setAttribute("visible", "false"));
-}
-
-function takeScreenshot() {
-    const scene = document.querySelector('a-scene');
-    if (scene.components.screenshot) {
-        scene.components.screenshot.capture('perspective');
-        document.getElementById("instruction").innerText = "Screenshot captured!";
-    } else {
-        alert("Screenshot feature not available");
-    }
+function adjustScale(f){
+  const id =
+    modes[modeIndex]==="HIRO MARKER"?"markerContainer":
+    modes[modeIndex]==="GPS ANCHOR"?"gpsContainer":"freeRoamContainer";
+  const el = document.getElementById(id);
+  const s = el.getAttribute("scale")||{x:1,y:1,z:1};
+  el.setAttribute("scale",{x:s.x*f,y:s.y*f,z:s.z*f});
 }
 </script>
+
 </body>
 </html>
