@@ -2,122 +2,105 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JCE Animal Cell AR - Master Edition</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
+    <title>JCE Biology AR - Detailed Organelles</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
         .interactable-ui { pointer-events: auto; }
-
-        #checker-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #111; color: white; z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 20px;
-        }
-
-        #status-label {
-            position: absolute; left: 10px; top: 10px; padding: 6px 12px;
-            background: rgba(0,0,0,0.8); color: #00FF00; border-radius: 20px; font-size: 11px;
-        }
-
-        #teacher-panel {
-            position: absolute; top: 10px; right: 10px;
-            background: rgba(30,30,30,0.95); padding: 12px;
-            border-radius: 12px; width: 160px; border: 2px solid #800000;
-        }
-        .teacher-btn {
-            width: 100%; margin: 4px 0; padding: 10px;
-            border-radius: 8px; background: #800000; color: white;
-            border: 1px solid orange; font-size: 10px; font-weight: bold; cursor: pointer;
-        }
-        .scale-group { display: flex; justify-content: space-between; }
-        .scale-btn { width: 48%; background: #444; }
-
-        #help-bar {
-            position: absolute; bottom: 30px; left: 50%;
-            transform: translateX(-50%); background: rgba(0,0,0,0.8);
-            color: white; padding: 15px 25px; border-radius: 30px;
-            width: 80%; text-align: center; border: 1px solid #00FF00;
-        }
-
-        .a-canvas { z-index: 1 !important; }
-        video { position: absolute !important; top: 0; left: 0; z-index: -1 !important; }
+        #status-label { position: absolute; left: 10px; top: 10px; padding: 6px 12px; background: rgba(0,0,0,0.8); color: #00FF00; border-radius: 20px; font-size: 11px; }
+        #teacher-panel { position: absolute; top: 10px; right: 10px; background: rgba(30,30,30,0.95); padding: 10px; border-radius: 12px; width: 155px; border: 2px solid #800000; }
+        .teacher-btn { width: 100%; margin: 4px 0; padding: 10px; border-radius: 8px; background: #800000; color: white; border: 1px solid orange; font-size: 10px; font-weight: bold; cursor: pointer; }
+        #help-bar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 15px 25px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #00FF00; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
+        .a-canvas { width: 100% !important; height: 100% !important; }
     </style>
 </head>
 
 <body>
 
-<div id="checker-overlay">
-    <h2> JCE BIOLOGY AR</h2>
-    <p>Camera & GPS Required</p>
-    <button class="teacher-btn" style="width: 200px; padding: 15px;" onclick="startApp()">START EXPERIMENT</button>
-</div>
-
-<div id="ui-layer">
-    <div id="status-label">MODE: MARKER</div>
-
-    <div id="teacher-panel" class="interactable-ui">
-        <button class="teacher-btn" onclick="cycleMode()"> SWITCH MODE</button>
-        <div class="scale-group">
-            <button class="teacher-btn scale-btn" onclick="adjustScale(1.2)"> Size</button>
-            <button class="teacher-btn scale-btn" onclick="adjustScale(0.8)"> Size</button>
+    <div id="ui-layer">
+        <div id="status-label">MODE: MARKER</div>
+        <div id="teacher-panel" class="interactable-ui">
+            <button class="teacher-btn" onclick="cycleMode()"> SWITCH MODE</button>
+            <div style="display:flex; justify-content: space-between;">
+                <button class="teacher-btn" style="width:48%" onclick="adjustScale(1.2)"></button>
+                <button class="teacher-btn" style="width:48%" onclick="adjustScale(0.8)"></button>
+            </div>
+            <button class="teacher-btn" onclick="takeScreenshot()"> SCREENSHOT</button>
+            <button class="teacher-btn" onclick="resetLabels()" style="background: #333;"> RESET</button>
         </div>
-        <button class="teacher-btn" onclick="takeScreenshot()"> SCREENSHOT</button>
-        <button class="teacher-btn" onclick="resetLabels()" style="background: #333;"> RESET LABELS</button>
+        <div id="help-bar">
+            <span id="instruction">Tap an organelle to learn its function</span>
+        </div>
     </div>
 
-    <div id="help-bar">
-        <span id="instruction">Point at Hiro Marker</span>
-    </div>
-</div>
+    <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;">
 
-<a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
-    cursor="rayOrigin: mouse"
-    raycaster="objects: .clickable">
+        <a-entity id="cam-wrapper">
+            <a-camera id="cam" gps-camera rotation-reader></a-camera>
+        </a-entity>
 
-    <a-camera id="cam" gps-camera rotation-reader></a-camera>
+        <a-entity id="cellTemplate" visible="false">
+            <a-circle rotation="-90 0 0" position="0 -1.8 0" radius="2" color="black" opacity="0.3"></a-circle>
 
-    <a-entity id="cellTemplate" visible="false">
-        <a-sphere class="clickable" radius="1.3" material="color:#ffddc1; opacity:0.3; transparent:true; side:double" data-label="Cell Membrane" data-desc="Protects the cell."></a-sphere>
-        <a-sphere class="clickable" radius="0.4" color="purple" data-label="Nucleus" data-desc="The control center (DNA)."></a-sphere>
-        <a-sphere class="clickable" radius="0.15" scale="2 1 1" position="0.7 0.3 0.5" color="red" data-label="Mitochondria" data-desc="Produces energy."></a-sphere>
-    </a-entity>
+            <a-sphere class="clickable" radius="1.6" material="color:#ade8f4; opacity:0.15; transparent:true; side:double" 
+                data-label="Cell Membrane" 
+                data-desc="The Cell Membrane is semi-permeable. It acts like a gatekeeper, controlling which nutrients enter and which waste products leave the cell.">
+            </a-sphere>
 
-    <a-marker preset="hiro" id="markerTarget">
-        <a-entity id="markerContainer" rotation="-90 0 0"></a-entity>
-    </a-marker>
+            <a-entity position="0 0 0">
+                <a-sphere class="clickable" radius="0.5" color="#5a189a" 
+                    data-label="Nucleus" 
+                    data-desc="The Nucleus is the control center. It contains DNA, which are the instructions for building and operating the entire organism.">
+                    <a-sphere radius="0.15" color="#240046" position="0.1 0.1 0.2"></a-sphere>
+                </a-sphere>
+            </a-entity>
 
-    <a-entity id="gpsTarget" gps-entity-place="latitude: -13.9626; longitude: 33.7741" visible="false">
-        <a-entity id="gpsContainer" scale="15 15 15"></a-entity>
-    </a-entity>
+            <a-entity position="0.8 -0.4 0.6" rotation="45 30 0">
+                <a-sphere class="clickable" radius="0.25" scale="2 1 1" color="#d00000" 
+                    data-label="Mitochondria" 
+                    data-desc="Known as the Powerhouse! It performs cellular respiration to convert glucose into energy (ATP). The inner folds increase surface area for more energy production.">
+                    <a-torus radius="0.1" tube="0.02" color="orange" rotation="90 0 0"></a-torus>
+                </a-sphere>
+            </a-entity>
 
-    <a-entity id="freeRoamContainer" visible="false"></a-entity>
+            <a-entity position="-0.7 0.5 -0.5" rotation="0 45 0">
+                <a-cylinder class="clickable" radius="0.3" height="0.05" color="#ffb703" scale="1 0.5 1.5"
+                    data-label="Golgi Apparatus" 
+                    data-desc="The Golgi acts like a post office. It modifies, sorts, and packages proteins for secretion or delivery to other organelles.">
+                </a-cylinder>
+                <a-cylinder radius="0.25" height="0.05" color="#fb8500" position="0 0.1 0" scale="1 0.5 1.5"></a-cylinder>
+            </a-entity>
 
-</a-scene>
+            <a-sphere class="clickable" radius="0.3" position="-0.5 -0.6 0.4" color="#48cae4" opacity="0.6"
+                data-label="Vacuole" 
+                data-desc="In animal cells, vacuoles are small and temporary. They store water, food, or waste products.">
+            </a-sphere>
+        </a-entity>
+
+        <a-marker preset="hiro" id="markerTarget">
+            <a-entity id="markerContainer" rotation="-90 0 0"></a-entity>
+        </a-marker>
+
+        <a-entity id="gpsTarget" gps-entity-place="latitude: -13.9626; longitude: 33.7741" visible="false">
+            <a-entity id="gpsContainer" scale="15 15 15"></a-entity>
+        </a-entity>
+
+        <a-entity id="freeRoamContainer" visible="false"></a-entity>
+
+    </a-scene>
 
 <script>
 let modes = ["MARKER", "GPS", "FREE ROAM"];
 let currentModeIdx = 0;
-let voiceOn = true;
 const synth = window.speechSynthesis;
-
-function startApp() {
-    document.getElementById('checker-overlay').style.display = 'none';
-}
 
 window.onload = () => {
     const template = document.getElementById("cellTemplate");
     const targets = ["markerContainer", "gpsContainer", "freeRoamContainer"];
-    
     targets.forEach(id => {
         const clone = template.cloneNode(true);
         clone.setAttribute("visible", "true");
@@ -132,18 +115,31 @@ function initInteractions(container) {
         label.setAttribute("value", el.getAttribute("data-label"));
         label.setAttribute("align", "center");
         label.setAttribute("look-at", "#cam");
-        label.setAttribute("color", "yellow");
-        label.setAttribute("position", "0 1.6 0");
-        label.setAttribute("scale", "2 2 2");
+        label.setAttribute("color", "white");
+        label.setAttribute("position", "0 1.2 0");
+        label.setAttribute("scale", "1.5 1.5 1.5");
         label.setAttribute("visible", "false");
         label.classList.add("label-text");
+        
+        // Add a background plane for the label to make it readable
+        const bg = document.createElement("a-plane");
+        bg.setAttribute("width", "1.5"); bg.setAttribute("height", "0.4");
+        bg.setAttribute("color", "#800000"); bg.setAttribute("position", "0 0 -0.01");
+        label.appendChild(bg);
         el.appendChild(label);
 
         el.addEventListener("click", (e) => {
             e.stopPropagation();
-            const isVis = label.getAttribute("visible");
+            const isVis = label.getAttribute("visible") === "true";
+            document.querySelectorAll(".label-text").forEach(l => l.setAttribute("visible", "false")); // Close others
             label.setAttribute("visible", !isVis);
-            if (!isVis) synth.speak(new SpeechSynthesisUtterance(el.getAttribute("data-desc")));
+            if (!isVis) {
+                synth.cancel();
+                const utter = new SpeechSynthesisUtterance(el.getAttribute("data-desc"));
+                utter.rate = 0.9; // Slightly slower for clarity
+                synth.speak(utter);
+                document.getElementById("instruction").innerText = el.getAttribute("data-label") + ": " + el.getAttribute("data-desc");
+            }
         });
     });
 }
@@ -152,24 +148,19 @@ function cycleMode() {
     currentModeIdx = (currentModeIdx + 1) % modes.length;
     const mode = modes[currentModeIdx];
     document.getElementById("status-label").innerText = "MODE: " + mode;
-    
     document.getElementById("markerTarget").setAttribute("visible", mode === "MARKER");
     document.getElementById("gpsTarget").setAttribute("visible", mode === "GPS");
     document.getElementById("freeRoamContainer").setAttribute("visible", mode === "FREE ROAM");
-
-    document.getElementById("instruction").innerText = 
-        mode === "MARKER" ? "Point at Hiro Marker" : 
-        mode === "GPS" ? "Walk toward coordinates" : "Tap the floor to place cell";
+    document.getElementById("instruction").innerText = "Switching to " + mode + " Mode...";
 }
 
-// Free Roam Logic: Listen for clicks on the scene
-document.querySelector('a-scene').addEventListener('click', function (e) {
+window.addEventListener('click', function() {
     if (modes[currentModeIdx] === "FREE ROAM") {
         const container = document.getElementById("freeRoamContainer");
         const cam = document.getElementById("cam");
-        // Get position in front of camera
-        const pos = cam.object3D.position;
-        container.setAttribute("position", `${pos.x} ${pos.y - 1} ${pos.z - 3}`);
+        const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.object3D.quaternion);
+        const targetPos = new THREE.Vector3().addVectors(cam.object3D.position, direction.multiplyScalar(4));
+        container.setAttribute("position", `${targetPos.x} -1 ${targetPos.z}`);
         container.setAttribute("visible", "true");
     }
 });
@@ -184,6 +175,8 @@ function adjustScale(m) {
 
 function resetLabels() {
     document.querySelectorAll(".label-text").forEach(l => l.setAttribute("visible", "false"));
+    document.getElementById("instruction").innerText = "Tap an organelle to learn its function";
+    synth.cancel();
 }
 
 function takeScreenshot() {
@@ -196,14 +189,10 @@ function takeScreenshot() {
     ctx.drawImage(video, 0, 0, merge.width, merge.height);
     ctx.drawImage(canvas, 0, 0, merge.width, merge.height);
     const link = document.createElement('a');
-    link.download = "MyCellAR.png";
+    link.download = "Bio_Discovery.png";
     link.href = merge.toDataURL();
     link.click();
 }
 </script>
 </body>
 </html>
-
-
-
-
