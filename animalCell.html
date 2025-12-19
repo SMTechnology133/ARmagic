@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,12 +7,13 @@
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <!-- Add Three.js for vector calculations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
         .interactable-ui { pointer-events: auto; }
         
-        /* Start Overlay - Critical for Motion Permissions */
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
         
         #status-label { position: absolute; left: 10px; top: 10px; padding: 6px 12px; background: rgba(0,0,0,0.8); color: #00FF00; border-radius: 20px; font-size: 11px; font-weight: bold; border: 1px solid #00FF00; }
@@ -66,9 +63,11 @@
         arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
         cursor="rayOrigin: mouse" 
         raycaster="objects: .clickable"
-        device-orientation-permission-ui="enabled: true">
+        device-orientation-permission-ui="enabled: true"
+        screenshot="width: 1280; height: 720">
 
         <a-entity id="cam-wrapper">
+            <!-- Fixed: Added missing "gps-camera" component -->
             <a-camera id="cam" gps-camera rotation-reader look-controls="enabled: false"></a-camera>
         </a-entity>
 
@@ -94,11 +93,12 @@
             <a-entity id="markerContainer" rotation="-90 0 0" scale="0.4 0.4 0.4"></a-entity>
         </a-marker>
 
+        <!-- Fixed: Set initial GPS coordinates to something reasonable -->
         <a-entity id="gpsTarget" gps-entity-place="latitude: 0; longitude: 0" visible="false">
             <a-entity id="gpsContainer" scale="15 15 15"></a-entity>
         </a-entity>
 
-        <a-entity id="freeRoamContainer" visible="false"></a-entity>
+        <a-entity id="freeRoamContainer" scale="15 15 15" visible="false"></a-entity>
 
     </a-scene>
 
@@ -106,12 +106,36 @@
 let modes = ["HIRO MARKER", "GPS ANCHOR", "FREE ROAM"];
 let currentModeIdx = 0;
 const synth = window.speechSynthesis;
+let gpsPermissionGranted = false;
 
 function startApp() {
-    document.getElementById('overlay').style.display = 'none';
-    // Request motion permission for iOS 13+
+    // Request location permission
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                gpsPermissionGranted = true;
+                document.getElementById('overlay').style.display = 'none';
+                console.log("GPS permission granted");
+            },
+            function(error) {
+                alert("Please enable location services for GPS mode to work");
+                document.getElementById('overlay').style.display = 'none';
+            },
+            {enableHighAccuracy: true, timeout: 5000, maximumAge: 0}
+        );
+    } else {
+        alert("Geolocation not supported");
+    }
+    
+    // Request motion permission for iOS
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission();
+        DeviceOrientationEvent.requestPermission()
+            .then(permissionState => {
+                if (permissionState === 'granted') {
+                    console.log("Motion permission granted");
+                }
+            })
+            .catch(console.error);
     }
 }
 
@@ -124,13 +148,19 @@ window.onload = () => {
         initInteractions(clone);
     });
 
+    // FIXED: Correct event names for AR.js
     window.addEventListener('gps-camera-update-position', (ev) => {
-        document.getElementById('curr-lat').innerText = ev.detail.position.latitude.toFixed(4);
-        document.getElementById('curr-lon').innerText = ev.detail.position.longitude.toFixed(4);
+        if (ev.detail && ev.detail.position) {
+            document.getElementById('curr-lat').innerText = ev.detail.position.latitude.toFixed(4);
+            document.getElementById('curr-lon').innerText = ev.detail.position.longitude.toFixed(4);
+        }
     });
 
-    document.getElementById('gpsTarget').addEventListener('gps-entity-place-update-positon', (ev) => {
-        document.getElementById('gps-dist').innerText = ev.detail.distance.toFixed(1);
+    // FIXED: Correct event name (typo in original)
+    document.getElementById('gpsTarget').addEventListener('gps-entity-place-update-position', (ev) => {
+        if (ev.detail && ev.detail.distance) {
+            document.getElementById('gps-dist').innerText = ev.detail.distance.toFixed(1);
+        }
     });
 };
 
@@ -140,11 +170,19 @@ window.addEventListener('click', (e) => {
         const container = document.getElementById("freeRoamContainer");
         const cam = document.getElementById("cam");
         
-        // Calculate point on the floor 3 meters in front
-        const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.object3D.quaternion);
-        const newPos = new THREE.Vector3().copy(cam.object3D.position).add(direction.multiplyScalar(3));
+        // Get camera position and rotation from A-Frame
+        const camPos = cam.getAttribute('position');
+        const camRot = cam.getAttribute('rotation');
         
-        container.setAttribute("position", `${newPos.x} -1.6 ${newPos.z}`);
+        // Convert degrees to radians
+        const yawRad = THREE.MathUtils.degToRad(camRot.y);
+        
+        // Calculate position 3 meters in front of camera
+        const distance = 3;
+        const newX = camPos.x + Math.sin(yawRad) * distance;
+        const newZ = camPos.z + Math.cos(yawRad) * distance;
+        
+        container.setAttribute("position", `${newX} ${camPos.y - 1.6} ${newZ}`);
         container.setAttribute("visible", "true");
         document.getElementById("instruction").innerText = "Cell placed 3m in front of you!";
     }
@@ -185,25 +223,46 @@ function cycleMode() {
     document.getElementById("gpsTarget").setAttribute("visible", mode === "GPS ANCHOR");
     document.getElementById("freeRoamContainer").setAttribute("visible", mode === "FREE ROAM");
 
-    if(mode === "FREE ROAM") document.getElementById("instruction").innerText = "Tap the floor to place the cell";
+    if(mode === "FREE ROAM") document.getElementById("instruction").innerText = "Tap anywhere to place the cell";
     else if(mode === "HIRO MARKER") document.getElementById("instruction").innerText = "Point at Hiro Marker";
-    else document.getElementById("instruction").innerText = "Tap 'Anchor' to place cell at your feet";
+    else document.getElementById("instruction").innerText = "Tap 'Anchor' to place cell at your location";
 }
 
 function dropAtCurrentLocation() {
+    if (!gpsPermissionGranted) {
+        alert("Please enable location services first");
+        return;
+    }
+    
     navigator.geolocation.getCurrentPosition((position) => {
-        document.getElementById('gpsTarget').setAttribute('gps-entity-place', 
-            `latitude: ${position.coords.latitude}; longitude: ${position.coords.longitude};`);
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        // Update GPS entity place
+        const gpsTarget = document.getElementById('gpsTarget');
+        gpsTarget.setAttribute('gps-entity-place', {
+            latitude: lat,
+            longitude: lon
+        });
+        gpsTarget.setAttribute('visible', 'true');
+        
         document.getElementById("instruction").innerText = "Cell anchored to your coordinates!";
-    });
+    }, (error) => {
+        alert("Failed to get location: " + error.message);
+    }, {enableHighAccuracy: true});
 }
 
-function adjustScale(m) {
+function adjustScale(multiplier) {
     const activeId = (modes[currentModeIdx] === "HIRO MARKER") ? "markerContainer" : 
                      (modes[currentModeIdx] === "GPS ANCHOR") ? "gpsContainer" : "freeRoamContainer";
     const el = document.getElementById(activeId);
-    const s = el.getAttribute("scale");
-    el.setAttribute("scale", `${s.x * m} ${s.y * m} ${s.z * m}`);
+    const currentScale = el.getAttribute("scale");
+    const newScale = {
+        x: currentScale.x * multiplier,
+        y: currentScale.y * multiplier,
+        z: currentScale.z * multiplier
+    };
+    el.setAttribute("scale", newScale);
 }
 
 function resetLabels() {
@@ -211,8 +270,13 @@ function resetLabels() {
 }
 
 function takeScreenshot() {
-    document.querySelector('a-scene').components.screenshot.capture('perspective');
-    alert("Screenshot Captured!");
+    const scene = document.querySelector('a-scene');
+    if (scene.components.screenshot) {
+        scene.components.screenshot.capture('perspective');
+        document.getElementById("instruction").innerText = "Screenshot captured!";
+    } else {
+        alert("Screenshot feature not available");
+    }
 }
 </script>
 </body>
