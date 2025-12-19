@@ -1,13 +1,8 @@
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JCE Animal Cell AR – Photo Edition</title>
+    <title>JCE Animal Cell AR - Master Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
@@ -15,243 +10,200 @@
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        a-scene { display: block; width: 100%; height: 100%; }
-
-        #ui-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 10;
-        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; }
+        #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
         .interactable-ui { pointer-events: auto; }
 
-        #status-label, #gps-debug {
-            position: absolute; left: 10px; padding: 6px 12px;
-            background: rgba(0,0,0,.75); color: #FFA500;
-            border-radius: 20px; font-size: 11px; border: 1px solid rgba(255,165,0,0.3);
+        #checker-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #111; color: white; z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px;
         }
-        #status-label { top: 10px; }
-        #gps-debug { top: 45px; }
+
+        #status-label {
+            position: absolute; left: 10px; top: 10px; padding: 6px 12px;
+            background: rgba(0,0,0,0.8); color: #00FF00; border-radius: 20px; font-size: 11px;
+        }
 
         #teacher-panel {
             position: absolute; top: 10px; right: 10px;
-            background: rgba(40,40,40,.9); padding: 12px;
-            border-radius: 12px; width: 150px;
-            color: orange; border: 2px solid #800000;
+            background: rgba(30,30,30,0.95); padding: 12px;
+            border-radius: 12px; width: 160px; border: 2px solid #800000;
         }
         .teacher-btn {
-            width: 100%; margin: 5px 0; padding: 10px;
-            border-radius: 8px; background: #800000;
-            color: white; border: 1px solid orange;
-            font-size: 11px; font-weight: bold; cursor: pointer;
+            width: 100%; margin: 4px 0; padding: 10px;
+            border-radius: 8px; background: #800000; color: white;
+            border: 1px solid orange; font-size: 10px; font-weight: bold; cursor: pointer;
         }
+        .scale-group { display: flex; justify-content: space-between; }
+        .scale-btn { width: 48%; background: #444; }
 
         #help-bar {
-            position: absolute; bottom: 20px; left: 50%;
-            transform: translateX(-50%);
-            background: rgba(128,0,0,.9); color: white;
-            padding: 12px 25px; border-radius: 30px;
-            width: 85%; text-align: center; border: 1px solid orange;
-            display: flex; justify-content: center; align-items: center;
-            transition: all 0.5s ease;
+            position: absolute; bottom: 30px; left: 50%;
+            transform: translateX(-50%); background: rgba(0,0,0,0.8);
+            color: white; padding: 15px 25px; border-radius: 30px;
+            width: 80%; text-align: center; border: 1px solid #00FF00;
         }
-        .reached { background: #008000 !important; transform: translateX(-50%) scale(1.1); }
-        .distance-display { font-weight: bold; color: yellow; font-size: 1.1em; margin-left: 10px; }
 
-        /* Flash effect for screenshot */
-        #flash {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: white; opacity: 0; pointer-events: none; z-index: 100;
-        }
+        .a-canvas { z-index: 1 !important; }
+        video { position: absolute !important; top: 0; left: 0; z-index: -1 !important; }
     </style>
 </head>
 
 <body>
 
-<div id="flash"></div>
+<div id="checker-overlay">
+    <h2> JCE BIOLOGY AR</h2>
+    <p>Camera & GPS Required</p>
+    <button class="teacher-btn" style="width: 200px; padding: 15px;" onclick="startApp()">START EXPERIMENT</button>
+</div>
 
 <div id="ui-layer">
-    <div id="status-label">MODE: HIRO MARKER</div>
-    <div id="gps-debug">GPS: inactive</div>
+    <div id="status-label">MODE: MARKER</div>
 
     <div id="teacher-panel" class="interactable-ui">
-        <div style="text-align:center; margin-bottom:8px; font-weight:bold;"> CONTROLS</div>
-        <button class="teacher-btn" onclick="toggleARMode(event)"> GPS / MARKER</button>
-        <button class="teacher-btn" onclick="takeScreenshot()"> TAKE PHOTO</button>
-        <button class="teacher-btn" onclick="toggleVoice(event)" id="voiceBtn"> VOICE: ON</button>
-        <button class="teacher-btn" onclick="resetLabels()" style="background: #444;"> RESET LABELS</button>
+        <button class="teacher-btn" onclick="cycleMode()"> SWITCH MODE</button>
+        <div class="scale-group">
+            <button class="teacher-btn scale-btn" onclick="adjustScale(1.2)"> Size</button>
+            <button class="teacher-btn scale-btn" onclick="adjustScale(0.8)"> Size</button>
+        </div>
+        <button class="teacher-btn" onclick="takeScreenshot()"> SCREENSHOT</button>
+        <button class="teacher-btn" onclick="resetLabels()" style="background: #333;"> RESET LABELS</button>
     </div>
 
     <div id="help-bar">
         <span id="instruction">Point at Hiro Marker</span>
-        <span id="dist-container" style="display:none;"><span id="dist-value" class="distance-display">---</span>m away</span>
     </div>
 </div>
 
 <a-scene
     embedded
-    vr-mode-ui="enabled:false"
-    arjs="sourceType:webcam; trackingMethod:best; debugUIEnabled: false;"
+    vr-mode-ui="enabled: false"
+    arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
     cursor="rayOrigin: mouse"
-    raycaster="objects: .clickable"
-    screenshot>
+    raycaster="objects: .clickable">
 
-    <a-camera id="cam" gps-camera="simulateLatitude:-13.9626; simulateLongitude:33.7741"></a-camera>
+    <a-camera id="cam" gps-camera rotation-reader></a-camera>
 
-    <a-entity id="cellModel" visible="false">
-        <a-sphere class="clickable" radius="1.3" material="color:#ffddc1; opacity:0.15; transparent:true; side:double" data-desc="The Cell membrane controls movement in and out." data-label="Cell Membrane"></a-sphere>
-        <a-sphere class="clickable" radius="0.4" position="0 0 0" color="purple" data-desc="The Nucleus contains the DNA." data-label="Nucleus"></a-sphere>
-        <a-sphere class="clickable" radius="0.15" scale="2 1 1" position="0.7 0.3 0.5" color="#ff4500" data-desc="Mitochondria create energy." data-label="Mitochondria"></a-sphere>
-        <a-sphere class="clickable" radius="0.25" position="-0.6 -0.4 0.4" color="#87CEEB" data-desc="The Vacuole stores nutrients." data-label="Vacuole"></a-sphere>
+    <a-entity id="cellTemplate" visible="false">
+        <a-sphere class="clickable" radius="1.3" material="color:#ffddc1; opacity:0.3; transparent:true; side:double" data-label="Cell Membrane" data-desc="Protects the cell."></a-sphere>
+        <a-sphere class="clickable" radius="0.4" color="purple" data-label="Nucleus" data-desc="The control center (DNA)."></a-sphere>
+        <a-sphere class="clickable" radius="0.15" scale="2 1 1" position="0.7 0.3 0.5" color="red" data-label="Mitochondria" data-desc="Produces energy."></a-sphere>
     </a-entity>
 
-    <a-marker preset="hiro" id="cellMarker">
+    <a-marker preset="hiro" id="markerTarget">
         <a-entity id="markerContainer" rotation="-90 0 0"></a-entity>
     </a-marker>
 
-    <a-entity id="cellGPS" gps-entity-place="latitude:-13.9626; longitude:33.7741" visible="false">
+    <a-entity id="gpsTarget" gps-entity-place="latitude: -13.9626; longitude: 33.7741" visible="false">
         <a-entity id="gpsContainer" scale="15 15 15"></a-entity>
     </a-entity>
+
+    <a-entity id="freeRoamContainer" visible="false"></a-entity>
 
 </a-scene>
 
 <script>
-let gpsMode = false;
+let modes = ["MARKER", "GPS", "FREE ROAM"];
+let currentModeIdx = 0;
 let voiceOn = true;
-let alertPlayed = false;
 const synth = window.speechSynthesis;
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-const markerContainer = document.getElementById("markerContainer");
-const gpsContainer = document.getElementById("gpsContainer");
-const distContainer = document.getElementById("dist-container");
-const distValue = document.getElementById("dist-value");
-const instruction = document.getElementById("instruction");
-const helpBar = document.getElementById("help-bar");
+function startApp() {
+    document.getElementById('checker-overlay').style.display = 'none';
+}
 
 window.onload = () => {
-    const template = document.getElementById("cellModel");
-    const markerView = template.cloneNode(true);
-    markerView.setAttribute("visible", "true");
-    markerContainer.appendChild(markerView);
-
-    const gpsView = template.cloneNode(true);
-    gpsView.setAttribute("visible", "true");
-    gpsContainer.appendChild(gpsView);
-
-    addDynamicLabelEvents(markerView);
-    addDynamicLabelEvents(gpsView);
+    const template = document.getElementById("cellTemplate");
+    const targets = ["markerContainer", "gpsContainer", "freeRoamContainer"];
+    
+    targets.forEach(id => {
+        const clone = template.cloneNode(true);
+        clone.setAttribute("visible", "true");
+        document.getElementById(id).appendChild(clone);
+        initInteractions(clone);
+    });
 };
 
-function addDynamicLabelEvents(container) {
+function initInteractions(container) {
     container.querySelectorAll(".clickable").forEach(el => {
         const label = document.createElement("a-text");
         label.setAttribute("value", el.getAttribute("data-label"));
-        label.setAttribute("scale", "1.8 1.8 1.8");
         label.setAttribute("align", "center");
         label.setAttribute("look-at", "#cam");
         label.setAttribute("color", "yellow");
         label.setAttribute("position", "0 1.6 0");
+        label.setAttribute("scale", "2 2 2");
         label.setAttribute("visible", "false");
-        label.classList.add("organelle-label");
-        
-        const anchor = document.createElement("a-entity");
-        anchor.appendChild(label);
-        el.appendChild(anchor);
+        label.classList.add("label-text");
+        el.appendChild(label);
 
-        el.addEventListener("click", (evt) => {
-            evt.stopPropagation();
-            const targetVisible = !label.getAttribute("visible");
-            label.setAttribute("visible", targetVisible);
-            if (voiceOn && targetVisible) {
-                synth.cancel();
-                synth.speak(new SpeechSynthesisUtterance(el.getAttribute("data-desc")));
-            }
+        el.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isVis = label.getAttribute("visible");
+            label.setAttribute("visible", !isVis);
+            if (!isVis) synth.speak(new SpeechSynthesisUtterance(el.getAttribute("data-desc")));
         });
     });
 }
 
-// SCREENSHOT LOGIC
-function takeScreenshot() {
-    const flash = document.getElementById('flash');
-    flash.style.opacity = '1';
-    setTimeout(() => flash.style.opacity = '0', 150);
+function cycleMode() {
+    currentModeIdx = (currentModeIdx + 1) % modes.length;
+    const mode = modes[currentModeIdx];
+    document.getElementById("status-label").innerText = "MODE: " + mode;
+    
+    document.getElementById("markerTarget").setAttribute("visible", mode === "MARKER");
+    document.getElementById("gpsTarget").setAttribute("visible", mode === "GPS");
+    document.getElementById("freeRoamContainer").setAttribute("visible", mode === "FREE ROAM");
 
-    const scene = document.querySelector('a-scene');
-    const video = document.querySelector('video');
-    const canvas = scene.canvas;
-
-    const mergeCanvas = document.createElement('canvas');
-    mergeCanvas.width = canvas.width;
-    mergeCanvas.height = canvas.height;
-    const ctx = mergeCanvas.getContext('2d');
-
-    // 1. Draw webcam feed
-    ctx.drawImage(video, 0, 0, mergeCanvas.width, mergeCanvas.height);
-    // 2. Draw 3D scene
-    ctx.drawImage(canvas, 0, 0, mergeCanvas.width, mergeCanvas.height);
-
-    // 3. Download image
-    const dataURL = mergeCanvas.toDataURL("image/png");
-    const link = document.createElement('a');
-    link.download = "Cell_AR_Screenshot.png";
-    link.href = dataURL;
-    link.click();
+    document.getElementById("instruction").innerText = 
+        mode === "MARKER" ? "Point at Hiro Marker" : 
+        mode === "GPS" ? "Walk toward coordinates" : "Tap the floor to place cell";
 }
 
-function playAlertSound() {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+// Free Roam Logic: Listen for clicks on the scene
+document.querySelector('a-scene').addEventListener('click', function (e) {
+    if (modes[currentModeIdx] === "FREE ROAM") {
+        const container = document.getElementById("freeRoamContainer");
+        const cam = document.getElementById("cam");
+        // Get position in front of camera
+        const pos = cam.object3D.position;
+        container.setAttribute("position", `${pos.x} ${pos.y - 1} ${pos.z - 3}`);
+        container.setAttribute("visible", "true");
+    }
+});
+
+function adjustScale(m) {
+    const id = modes[currentModeIdx] === "MARKER" ? "markerContainer" : 
+               modes[currentModeIdx] === "GPS" ? "gpsContainer" : "freeRoamContainer";
+    const el = document.getElementById(id);
+    const s = el.getAttribute("scale");
+    el.setAttribute("scale", `${s.x * m} ${s.y * m} ${s.z * m}`);
 }
 
 function resetLabels() {
-    document.querySelectorAll(".organelle-label").forEach(l => l.setAttribute("visible", "false"));
-    synth.cancel();
+    document.querySelectorAll(".label-text").forEach(l => l.setAttribute("visible", "false"));
 }
 
-function toggleARMode(e) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    gpsMode = !gpsMode;
-    alertPlayed = false;
-    document.getElementById("cellMarker").setAttribute("visible", !gpsMode);
-    document.getElementById("cellGPS").setAttribute("visible", gpsMode);
-    document.getElementById("status-label").innerText = gpsMode ? "MODE: GPS" : "MODE: HIRO MARKER";
-    instruction.innerText = gpsMode ? "Walk toward the cell" : "Point at Hiro Marker";
-    distContainer.style.display = gpsMode ? "inline" : "none";
+function takeScreenshot() {
+    const scene = document.querySelector('a-scene');
+    const video = document.querySelector('video');
+    const canvas = scene.canvas;
+    const merge = document.createElement('canvas');
+    merge.width = canvas.width; merge.height = canvas.height;
+    const ctx = merge.getContext('2d');
+    ctx.drawImage(video, 0, 0, merge.width, merge.height);
+    ctx.drawImage(canvas, 0, 0, merge.width, merge.height);
+    const link = document.createElement('a');
+    link.download = "MyCellAR.png";
+    link.href = merge.toDataURL();
+    link.click();
 }
-
-function toggleVoice(e) {
-    voiceOn = !voiceOn;
-    synth.cancel();
-    e.target.innerText = voiceOn ? " VOICE: ON" : " VOICE: OFF";
-}
-
-window.addEventListener("gps-camera-update-position", e => {
-    document.getElementById("gps-debug").innerText = 
-        `GPS: ${e.detail.position.latitude.toFixed(5)}, ${e.detail.position.longitude.toFixed(5)}`;
-
-    const dist = document.getElementById("cellGPS").getAttribute('distance');
-    if (dist !== null && gpsMode) {
-        const roundedDist = Math.round(dist);
-        distValue.innerText = roundedDist;
-        if (roundedDist <= 2 && !alertPlayed) {
-            playAlertSound();
-            instruction.innerText = " YOU FOUND THE CELL! ";
-            helpBar.classList.add("reached");
-            alertPlayed = true;
-        } else if (roundedDist > 5 && alertPlayed) {
-            alertPlayed = false;
-            instruction.innerText = "Walk toward the cell";
-            helpBar.classList.remove("reached");
-        }
-    }
-});
 </script>
-
 </body>
 </html>
+
+
+
+
