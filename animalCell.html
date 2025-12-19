@@ -2,89 +2,91 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JCE Biology AR - Interactive GPS</title>
+    <title>JCE Living Biology AR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
         .interactable-ui { pointer-events: auto; }
-        #status-label { position: absolute; left: 10px; top: 10px; padding: 6px 12px; background: rgba(0,0,0,0.8); color: #00FF00; border-radius: 20px; font-size: 11px; }
-        
-        #gps-info { position: absolute; left: 10px; top: 50px; padding: 12px; background: rgba(0,0,0,0.85); color: #00FF00; border-radius: 8px; font-size: 10px; display: none; border: 1px solid #00FF00; line-height: 1.4; }
-        
-        #teacher-panel { position: absolute; top: 10px; right: 10px; background: rgba(30,30,30,0.95); padding: 10px; border-radius: 12px; width: 160px; border: 2px solid #800000; }
-        .teacher-btn { width: 100%; margin: 4px 0; padding: 10px; border-radius: 8px; background: #800000; color: white; border: 1px solid orange; font-size: 10px; font-weight: bold; cursor: pointer; }
-        #drop-btn { background: #006400; display: none; border: 1px solid #00FF00; }
-        
-        #help-bar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 15px 25px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #00FF00; }
+        #status-label { position: absolute; left: 10px; top: 10px; padding: 6px 12px; background: rgba(0,0,0,0.8); color: #00FF00; border-radius: 20px; font-size: 11px; font-weight: bold; border: 1px solid #00FF00; }
+        #gps-info { position: absolute; left: 10px; top: 55px; padding: 12px; background: rgba(0,0,0,0.85); color: #00FF00; border-radius: 8px; font-size: 10px; display: none; border: 1px solid #00FF00; box-shadow: 0 0 10px rgba(0,255,0,0.3); }
+        #teacher-panel { position: absolute; top: 10px; right: 10px; background: rgba(20,20,20,0.95); padding: 10px; border-radius: 12px; width: 160px; border: 2px solid #800000; }
+        .teacher-btn { width: 100%; margin: 4px 0; padding: 10px; border-radius: 8px; background: #800000; color: white; border: 1px solid orange; font-size: 10px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        .teacher-btn:active { background: orange; }
+        #help-bar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; padding: 15px 25px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #00FF00; font-size: 13px; }
     </style>
 </head>
 
 <body>
     <div id="ui-layer">
-        <div id="status-label">MODE: MARKER</div>
+        <div id="status-label">MODE: HIRO MARKER</div>
         
         <div id="gps-info">
-            <b> GPS SATELLITE DATA</b><br>
-            Status: <span id="gps-stat">Waiting for Lock...</span><br>
-            Distance: <span id="gps-dist">---</span>m<br>
-            Your Lat: <span id="curr-lat">0.000</span><br>
-            Your Lon: <span id="curr-lon">0.000</span>
+            <b style="color:white"> GPS LIVE DATA</b><br>
+            Distance to Cell: <span id="gps-dist">---</span>m<br>
+            Current Lat: <span id="curr-lat">0.00</span><br>
+            Current Lon: <span id="curr-lon">0.00</span>
         </div>
 
         <div id="teacher-panel" class="interactable-ui">
             <button class="teacher-btn" onclick="cycleMode()"> SWITCH MODE</button>
-            <button id="drop-btn" class="teacher-btn" onclick="dropAtCurrentLocation()"> DROP CELL HERE</button>
+            <button id="gps-action-btn" class="teacher-btn" style="display:none; background:#004d00;" onclick="dropAtCurrentLocation()"> ANCHOR CELL HERE</button>
             <div style="display:flex; justify-content: space-between;">
-                <button class="teacher-btn" style="width:48%" onclick="adjustScale(1.2)"></button>
-                <button class="teacher-btn" style="width:48%" onclick="adjustScale(0.8)"></button>
+                <button class="teacher-btn" style="width:48%" onclick="adjustScale(1.2)"> SCALE</button>
+                <button class="teacher-btn" style="width:48%" onclick="adjustScale(0.8)"> SCALE</button>
             </div>
-            <button class="teacher-btn" onclick="takeScreenshot()"> SCREENSHOT</button>
-            <button class="teacher-btn" onclick="resetLabels()" style="background: #333;"> RESET</button>
+            <button class="teacher-btn" onclick="takeScreenshot()"> CAPTURE VIEW</button>
         </div>
         
         <div id="help-bar">
-            <span id="instruction">Point at Hiro Marker to begin</span>
+            <span id="instruction">Point your camera at a Hiro Marker</span>
         </div>
     </div>
 
-    <a-scene embedded vr-mode-ui="enabled: false" 
-             arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
-             cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+    <a-scene 
+        embedded 
+        vr-mode-ui="enabled: false" 
+        arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
+        cursor="rayOrigin: mouse" 
+        raycaster="objects: .clickable">
 
         <a-entity id="cam-wrapper">
-            <a-camera id="cam" gps-camera rotation-reader></a-camera>
+            <a-camera id="cam" gps-camera rotation-reader look-controls="enabled: false"></a-camera>
         </a-entity>
 
         <a-entity id="cellTemplate" visible="false">
-             <a-sphere class="clickable" radius="2" material="color:#ade8f4; opacity:0.15; transparent:true; side:double" data-label="Cell Membrane" data-desc="The semi-permeable gatekeeper of the cell."></a-sphere>
+             <a-sphere class="clickable" radius="2" material="color:#4cc9f0; opacity:0.2; transparent:true; side:double" 
+                data-label="Cell Membrane" data-desc="The semi-permeable boundary. Watch it pulse as it regulates material flow."
+                animation="property: scale; to: 1.05 1.05 1.05; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+             </a-sphere>
              
-             <a-sphere class="clickable" radius="0.5" color="#5a189a" data-label="Nucleus" data-desc="Control center containing DNA."></a-sphere>
-             
-             <a-torus class="clickable" radius="0.7" tube="0.04" color="#ff4d6d" rotation="90 0 0" data-label="Rough ER" data-desc="Transport network studded with ribosomes."></a-torus>
+             <a-sphere class="clickable" radius="0.5" color="#7209b7" 
+                data-label="Nucleus" data-desc="The control center containing DNA instructions for the cell."
+                animation="property: material.emissive; from: #000; to: #3b015e; dir: alternate; dur: 1500; loop: true">
+             </a-sphere>
              
              <a-entity position="1 -0.5 0.5" rotation="45 30 0">
-                <a-sphere class="clickable" radius="0.25" scale="2 1 1" color="#d00000" data-label="Mitochondria" data-desc="The powerhouse producing ATP energy."></a-sphere>
+                <a-sphere class="clickable" radius="0.25" scale="2 1 1" color="#f72585" data-label="Mitochondria" data-desc="The powerhouse. It generates ATP energy through respiration."></a-sphere>
              </a-entity>
         </a-entity>
 
         <a-marker preset="hiro" id="markerTarget">
-            <a-entity id="markerContainer" rotation="-90 0 0" scale="0.5 0.5 0.5"></a-entity>
+            <a-entity id="markerContainer" rotation="-90 0 0" scale="0.4 0.4 0.4"></a-entity>
         </a-marker>
 
-        <a-entity id="gpsTarget" gps-entity-place="latitude: 0; longitude: 0" visible="false">
+        <a-entity id="gpsTarget" gps-entity-place="latitude: -13.9626; longitude: 33.7741" visible="false">
             <a-entity id="gpsContainer" scale="15 15 15"></a-entity>
         </a-entity>
 
-        <a-entity id="freeRoamContainer" position="0 -1 -5" visible="false"></a-entity>
+        <a-entity id="freeRoamContainer" position="0 -1.5 -5" visible="false"></a-entity>
 
     </a-scene>
 
 <script>
-let modes = ["MARKER", "GPS", "FREE ROAM"];
+let modes = ["HIRO MARKER", "GPS ANCHOR", "FREE ROAM"];
 let currentModeIdx = 0;
 const synth = window.speechSynthesis;
 
@@ -99,11 +101,9 @@ window.onload = () => {
         initInteractions(clone);
     });
 
-    // Handle distance updates from AR.js
     window.addEventListener('gps-camera-update-position', (ev) => {
         document.getElementById('curr-lat').innerText = ev.detail.position.latitude.toFixed(4);
         document.getElementById('curr-lon').innerText = ev.detail.position.longitude.toFixed(4);
-        document.getElementById('gps-stat').innerText = "Signal Locked";
     });
 
     document.getElementById('gpsTarget').addEventListener('gps-entity-place-update-positon', (ev) => {
@@ -111,18 +111,17 @@ window.onload = () => {
     });
 };
 
-function dropAtCurrentLocation() {
-    navigator.geolocation.getCurrentPosition((position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        
-        const gpsEntity = document.getElementById('gpsTarget');
-        gpsEntity.setAttribute('gps-entity-place', `latitude: ${lat}; longitude: ${lon};`);
-        
-        document.getElementById("instruction").innerText = "Cell dropped at your location!";
-        document.getElementById('gps-stat').innerText = "Target Placed";
-    });
-}
+// World Tap to Place Function
+window.addEventListener('click', (e) => {
+    if (modes[currentModeIdx] === "FREE ROAM") {
+        const container = document.getElementById("freeRoamContainer");
+        const cam = document.getElementById("cam");
+        const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.object3D.quaternion);
+        const newPos = new THREE.Vector3().copy(cam.object3D.position).add(direction.multiplyScalar(4));
+        container.setAttribute("position", `${newPos.x} -1.5 ${newPos.z}`);
+        document.getElementById("instruction").innerText = "Cell placed on the ground!";
+    }
+});
 
 function initInteractions(container) {
     container.querySelectorAll(".clickable").forEach(el => {
@@ -149,23 +148,29 @@ function initInteractions(container) {
 function cycleMode() {
     currentModeIdx = (currentModeIdx + 1) % modes.length;
     const mode = modes[currentModeIdx];
-    
     document.getElementById("status-label").innerText = "MODE: " + mode;
-    
-    // UI visibility logic
-    document.getElementById("gps-info").style.display = (mode === "GPS") ? "block" : "none";
-    document.getElementById("drop-btn").style.display = (mode === "GPS") ? "block" : "none";
-    
-    document.getElementById("markerTarget").setAttribute("visible", mode === "MARKER");
-    document.getElementById("gpsTarget").setAttribute("visible", mode === "GPS");
+    document.getElementById("gps-info").style.display = (mode === "GPS ANCHOR") ? "block" : "none";
+    document.getElementById("gps-action-btn").style.display = (mode === "GPS ANCHOR") ? "block" : "none";
+    document.getElementById("markerTarget").setAttribute("visible", mode === "HIRO MARKER");
+    document.getElementById("gpsTarget").setAttribute("visible", mode === "GPS ANCHOR");
     document.getElementById("freeRoamContainer").setAttribute("visible", mode === "FREE ROAM");
 
-    document.getElementById("instruction").innerText = (mode === "GPS") ? "Walk around to find the cell" : "Mode Switched";
+    if(mode === "FREE ROAM") document.getElementById("instruction").innerText = "Tap the floor to place the cell";
+    else if(mode === "HIRO MARKER") document.getElementById("instruction").innerText = "Point camera at a Hiro Marker";
+    else document.getElementById("instruction").innerText = "Tap 'Anchor' to drop cell at your GPS coordinates";
+}
+
+function dropAtCurrentLocation() {
+    navigator.geolocation.getCurrentPosition((position) => {
+        document.getElementById('gpsTarget').setAttribute('gps-entity-place', 
+            `latitude: ${position.coords.latitude}; longitude: ${position.coords.longitude};`);
+        document.getElementById("instruction").innerText = "Cell anchored to this field location!";
+    });
 }
 
 function adjustScale(m) {
-    const activeId = (modes[currentModeIdx] === "MARKER") ? "markerContainer" : 
-                     (modes[currentModeIdx] === "GPS") ? "gpsContainer" : "freeRoamContainer";
+    const activeId = (modes[currentModeIdx] === "HIRO MARKER") ? "markerContainer" : 
+                     (modes[currentModeIdx] === "GPS ANCHOR") ? "gpsContainer" : "freeRoamContainer";
     const el = document.getElementById(activeId);
     const s = el.getAttribute("scale");
     el.setAttribute("scale", `${s.x * m} ${s.y * m} ${s.z * m}`);
