@@ -1,8 +1,3 @@
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,21 +6,39 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
+<!-- A-Frame & AR.js -->
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
 
 <style>
-body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font-family:'Segoe UI',sans-serif;}
-#ui-layer { position:fixed; inset:0; pointer-events:none; z-index:1000;}
+html, body {
+  margin:0; padding:0;
+  width:100%; height:100%;
+  overflow:hidden;
+  font-family:'Segoe UI',sans-serif;
+  background:black;
+}
+
+#ui-layer {
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1000;
+}
+
 .interactable-ui { pointer-events:auto; }
 
 #overlay {
   position:fixed; inset:0;
   background:rgba(0,0,0,0.9);
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  color:white; z-index:9999; text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  z-index:2000;
+  text-align:center;
 }
 
 #status-label {
@@ -70,7 +83,8 @@ body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font
 }
 
 #help-bar {
-  position:absolute; bottom:30px; left:50%;
+  position:absolute;
+  bottom:30px; left:50%;
   transform:translateX(-50%);
   background:rgba(0,0,0,0.85);
   color:white;
@@ -87,12 +101,14 @@ body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font
 
 <body>
 
+<!-- START OVERLAY -->
 <div id="overlay" class="interactable-ui">
   <h2>JCE Biology AR</h2>
   <p>This app requires camera and motion access</p>
   <button class="teacher-btn" style="width:200px;font-size:16px" onclick="startApp()"> START AR</button>
 </div>
 
+<!-- UI -->
 <div id="ui-layer">
   <div id="status-label">MODE: HIRO MARKER</div>
 
@@ -113,31 +129,60 @@ body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font
   <div id="help-bar" onclick="placeFreeRoam()">Tap to place object</div>
 </div>
 
-<a-scene embedded
+<!-- AR SCENE -->
+<a-scene
+  embedded
+  renderer="alpha:true; antialias:true"
   vr-mode-ui="enabled:false"
-  arjs="sourceType:webcam;debugUIEnabled:false"
-  device-orientation-permission-ui="enabled:true">
+  device-orientation-permission-ui="enabled:true"
+  arjs="sourceType:webcam;debugUIEnabled:false;gpsMinDistance:1;gpsTimeInterval:1000">
 
-  <a-camera gps-camera rotation-reader></a-camera>
+  <!-- CAMERA -->
+  <a-camera gps-camera rotation-reader force-camera></a-camera>
 
+  <!-- TEMPLATE -->
   <a-entity id="cellTemplate" visible="false">
     <a-sphere radius="2" material="color:#4cc9f0;opacity:0.2;transparent:true"></a-sphere>
     <a-sphere radius="0.5" color="#7209b7"></a-sphere>
-    <a-text value="Animal Cell" position="0 2.5 0" align="center" look-at="[gps-camera]" color="white"></a-text>
+    <a-text value="Animal Cell"
+      position="0 2.5 0"
+      align="center"
+      look-at="[gps-camera]"
+      color="white"></a-text>
   </a-entity>
 
+  <!-- MARKER -->
   <a-marker preset="hiro" id="markerTarget">
     <a-entity id="markerContainer" scale="0.4 0.4 0.4"></a-entity>
   </a-marker>
 
-  <a-entity id="gpsTarget" gps-entity-place="latitude:0;longitude:0" visible="false">
+  <!-- GPS -->
+  <a-entity id="gpsTarget" visible="false">
     <a-entity id="gpsContainer" scale="20 20 20"></a-entity>
   </a-entity>
 
+  <!-- FREE ROAM -->
   <a-entity id="freeRoamContainer" visible="false"></a-entity>
+
 </a-scene>
 
 <script>
+/* ---------- FORCE CAMERA INLINE (BLACK SCREEN FIX) ---------- */
+AFRAME.registerComponent('force-camera',{
+  init(){
+    const check = setInterval(()=>{
+      const v = document.querySelector('video');
+      if(v){
+        v.setAttribute('playsinline','');
+        v.setAttribute('webkit-playsinline','');
+        v.muted = true;
+        clearInterval(check);
+      }
+    },200);
+  }
+});
+
+/* ---------- APP LOGIC ---------- */
 const modes = ["HIRO MARKER","GPS ANCHOR","FREE ROAM"];
 let modeIndex = 0;
 let gpsReady = false;
@@ -150,15 +195,22 @@ const gpsDist = document.getElementById("gps-dist");
 const currLat = document.getElementById("curr-lat");
 const currLon = document.getElementById("curr-lon");
 
-function startApp() {
+function startApp(){
   document.getElementById("overlay").style.display="none";
-  navigator.geolocation.getCurrentPosition(
-    () => gpsReady = true,
-    () => alert("GPS disabled")
+  document.querySelector("a-scene").play();
+
+  navigator.geolocation.watchPosition(
+    p=>{
+      gpsReady = true;
+      currLat.textContent = p.coords.latitude.toFixed(4);
+      currLon.textContent = p.coords.longitude.toFixed(4);
+    },
+    ()=>alert("GPS permission required"),
+    { enableHighAccuracy:true }
   );
 }
 
-window.onload = () => {
+window.addEventListener("load",()=>{
   const tpl = document.getElementById("cellTemplate");
   ["markerContainer","gpsContainer","freeRoamContainer"].forEach(id=>{
     const c = tpl.cloneNode(true);
@@ -166,60 +218,60 @@ window.onload = () => {
     document.getElementById(id).appendChild(c);
   });
 
-  window.addEventListener("gps-camera-update-position", e=>{
-    if(e.detail?.position){
-      currLat.textContent = e.detail.position.latitude.toFixed(4);
-      currLon.textContent = e.detail.position.longitude.toFixed(4);
-    }
-  });
-
   document.getElementById("gpsTarget")
-    .addEventListener("gps-entity-place-update-position", e=>{
+    .addEventListener("gps-entity-place-update-position",e=>{
       if(e.detail?.distance){
         gpsDist.textContent = e.detail.distance.toFixed(1);
       }
     });
-};
+});
 
 function cycleMode(){
   modeIndex = (modeIndex+1)%modes.length;
   const m = modes[modeIndex];
 
-  statusLabel.innerText = "MODE: "+m;
-  document.getElementById("markerTarget").setAttribute("visible", m==="HIRO MARKER");
-  document.getElementById("gpsTarget").setAttribute("visible", m==="GPS ANCHOR");
+  statusLabel.textContent = "MODE: "+m;
+
+  document.getElementById("markerTarget").setAttribute("enabled",m==="HIRO MARKER");
+  document.getElementById("gpsTarget").setAttribute("visible",m==="GPS ANCHOR");
+
   gpsInfo.style.display = m==="GPS ANCHOR"?"block":"none";
   gpsActionBtn.style.display = m==="GPS ANCHOR"?"block":"none";
-  document.getElementById("freeRoamContainer").object3D.visible = false;
 
-  helpBar.innerText =
+  helpBar.textContent =
     m==="FREE ROAM"?"Tap to place object":
     m==="HIRO MARKER"?"Point camera at Hiro Marker":
     "Walk outside then tap ANCHOR";
+
+  document.getElementById("freeRoamContainer").setAttribute("visible",false);
 }
 
 function dropAtCurrentLocation(){
   if(!gpsReady) return alert("GPS not ready");
+
   navigator.geolocation.getCurrentPosition(p=>{
-    document.getElementById("gpsTarget")
-      .setAttribute("gps-entity-place",{
-        latitude:p.coords.latitude,
-        longitude:p.coords.longitude
-      });
+    const gpsTarget = document.getElementById("gpsTarget");
+    gpsTarget.setAttribute("gps-entity-place",{
+      latitude:p.coords.latitude,
+      longitude:p.coords.longitude
+    });
+    gpsTarget.setAttribute("visible",true);
   });
 }
 
 function placeFreeRoam(){
   if(modes[modeIndex]!=="FREE ROAM") return;
   const c = document.getElementById("freeRoamContainer");
+  c.setAttribute("visible",true);
   c.object3D.position.set(0,-1.2,-3);
-  c.object3D.visible = true;
 }
 
 function adjustScale(f){
   const id =
     modes[modeIndex]==="HIRO MARKER"?"markerContainer":
-    modes[modeIndex]==="GPS ANCHOR"?"gpsContainer":"freeRoamContainer";
+    modes[modeIndex]==="GPS ANCHOR"?"gpsContainer":
+    "freeRoamContainer";
+
   const el = document.getElementById(id);
   const s = el.getAttribute("scale")||{x:1,y:1,z:1};
   el.setAttribute("scale",{x:s.x*f,y:s.y*f,z:s.z*f});
