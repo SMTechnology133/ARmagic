@@ -1,8 +1,3 @@
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -95,33 +90,40 @@
     renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;"
     vr-mode-ui="enabled: false">
 
-    <a-camera id="cam" gps-camera rotation-reader></a-camera>
+    <a-camera id="cam" gps-camera rotation-reader position="0 1.6 0"></a-camera>
 
     <a-entity id="animalTemplate" visible="false">
-        <a-sphere radius="2.2" material="color:#4cc9f0;opacity:0.15;transparent:true;side:double"></a-sphere>
-        <a-sphere radius="0.6" color="#7209b7">
-            <a-text class="cell-label" value="NUCLEUS: \n Brain of the cell" position="0 1.2 0" align="center" scale="0.6 0.6 0.6" visible="false"></a-text>
+        <a-sphere radius="1.2" material="color:#4cc9f0;opacity:0.15;transparent:true;side:double"></a-sphere>
+        <a-sphere radius="0.3" color="#7209b7">
+            <a-text class="cell-label" value="NUCLEUS" position="0 0.8 0" align="center" scale="0.4 0.4 0.4" visible="false" look-at="#cam"></a-text>
         </a-sphere>
-        <a-entity position="1.3 0.6 0.5">
-            <a-sphere radius="0.25" scale="1.5 0.6 0.6" color="#f72585"></a-sphere>
-            <a-text class="cell-label" value="MITOCHONDRIA: \n Powerhouse" position="0 -0.5 0" align="center" scale="0.5 0.5 0.5" visible="false"></a-text>
+        <a-entity position="0.6 0.3 0.2">
+            <a-sphere radius="0.12" scale="1.5 0.6 0.6" color="#f72585"></a-sphere>
+            <a-text class="cell-label" value="MITOCHONDRIA" position="0 -0.3 0" align="center" scale="0.3 0.3 0.3" visible="false" look-at="#cam"></a-text>
         </a-entity>
-        <a-text value="ANIMAL CELL" position="0 2.8 0" align="center" color="#00ff00" width="6"></a-text>
+        <a-text value="ANIMAL CELL" position="0 1.6 0" align="center" color="#00ff00" width="4"></a-text>
+        <a-circle radius="1" rotation="-90 0 0" position="0 -1.15 0" color="black" opacity="0.4"></a-circle>
     </a-entity>
 
     <a-entity id="plantTemplate" visible="false">
-        <a-box width="3.4" height="4.4" depth="3.4" material="color:#004d00;opacity:0.25;transparent:true;side:double"></a-box>
-        <a-box width="1.8" height="2.8" depth="1.8" color="#ade8f4" position="0 -0.2 0" opacity="0.45">
-            <a-text class="cell-label" value="VACUOLE: \n Water Storage" position="0 1.8 0" align="center" scale="0.7 0.7 0.7" visible="false"></a-text>
+        <a-box width="1.6" height="2.2" depth="1.6" material="color:#004d00;opacity:0.25;transparent:true;side:double"></a-box>
+        <a-box width="0.8" height="1.4" depth="0.8" color="#ade8f4" position="0 -0.1 0" opacity="0.45">
+            <a-text class="cell-label" value="VACUOLE" position="0 1 0" align="center" scale="0.5 0.5 0.5" visible="false" look-at="#cam"></a-text>
         </a-box>
-        <a-entity position="-1.2 1.2 0.8">
-            <a-sphere radius="0.3" scale="1 0.4 1" color="#228b22"></a-sphere>
-            <a-text class="cell-label" value="CHLOROPLAST: \n Photosynthesis" position="0 -0.6 0" align="center" scale="0.5 0.5 0.5" visible="false"></a-text>
+        <a-entity position="-0.6 0.6 0.4">
+            <a-sphere radius="0.15" scale="1 0.4 1" color="#228b22"></a-sphere>
+            <a-text class="cell-label" value="CHLOROPLAST" position="0 -0.3 0" align="center" scale="0.3 0.3 0.3" visible="false" look-at="#cam"></a-text>
         </a-entity>
-        <a-text value="PLANT CELL" position="0 3.2 0" align="center" color="#74c69d" width="6"></a-text>
+        <a-text value="PLANT CELL" position="0 1.8 0" align="center" color="#74c69d" width="4"></a-text>
+        <a-circle radius="1.2" rotation="-90 0 0" position="0 -1.05 0" color="black" opacity="0.4"></a-circle>
     </a-entity>
 
-    <a-ring id="reticle" color="#00ff00" radius-inner="0.4" radius-outer="0.5" rotation="-90 0 0" position="0 -1.5 -3" visible="false"></a-ring>
+    <a-plane id="floorMesh" rotation="-90 0 0" width="10" height="10" 
+             material="src:https://cdn.glitch.global/605e2a51-d45f-4d87-a285-9410ad350515/grid.png; repeat:10 10; transparent:true; opacity:0" 
+             position="0 -1.6 0">
+    </a-plane>
+
+    <a-ring id="reticle" color="#00ff00" radius-inner="0.2" radius-outer="0.3" rotation="-90 0 0" position="0 -1.5 -3" visible="false"></a-ring>
 
     <a-marker preset="hiro" id="markerTarget">
         <a-entity id="markerContainer" scale="0.3 0.3 0.3"></a-entity>
@@ -131,7 +133,7 @@
         <a-entity id="gpsContainer" scale="10 10 10"></a-entity>
     </a-entity>
 
-    <a-entity id="freeRoamContainer" position="0 -1.5 -5" visible="false"></a-entity>
+    <a-entity id="freeRoamContainer" position="0 -1.6 -5" visible="false"></a-entity>
 
 </a-scene>
 
@@ -145,7 +147,6 @@ function startApp() {
     document.getElementById("overlay").style.display = "none";
     updateCellModels();
     
-    // GPS Real-time display
     navigator.geolocation.watchPosition(p => {
         document.getElementById("lat").textContent = p.coords.latitude.toFixed(4);
         document.getElementById("lon").textContent = p.coords.longitude.toFixed(4);
@@ -163,7 +164,6 @@ function updateCellModels() {
         clone.setAttribute("visible", "true");
         clone.removeAttribute("id");
         
-        // Ensure the cloned labels inherit the current toggle state immediately
         const internalLabels = clone.querySelectorAll('.cell-label');
         internalLabels.forEach(l => l.setAttribute('visible', labelsVisible));
         
@@ -173,7 +173,6 @@ function updateCellModels() {
 
 function toggleLabels() {
     labelsVisible = !labelsVisible;
-    // Target all labels currently in the scene
     const allLabels = document.querySelectorAll('.cell-label');
     allLabels.forEach(l => l.setAttribute('visible', labelsVisible));
 }
@@ -187,13 +186,11 @@ function resetApp() {
     document.getElementById("markerContainer").setAttribute("scale", "0.3 0.3 0.3");
     document.getElementById("gpsContainer").setAttribute("scale", "10 10 10");
     document.getElementById("freeRoamContainer").setAttribute("scale", "1 1 1");
-    
     document.getElementById("gpsTarget").setAttribute("visible", false);
     document.getElementById("gpsTarget").removeAttribute("gps-entity-place");
     document.getElementById("freeRoamContainer").setAttribute("visible", false);
-    
     labelsVisible = false;
-    toggleLabels(); // Use function to ensure cleanup
+    toggleLabels();
     alert("Reset: Labels hidden & anchors cleared.");
 }
 
@@ -211,7 +208,7 @@ function cycleMode() {
     document.getElementById("freeRoamContainer").setAttribute("visible", (m === "FREE ROAM"));
 
     document.getElementById("help-bar").textContent = 
-        m === "FREE ROAM" ? "Tap bottom bar to place cell on ground" : 
+        m === "FREE ROAM" ? "Tap bottom bar to drop cell on floor" : 
         m === "HIRO MARKER" ? "Point at Hiro Marker" : "Wait for GPS and tap Anchor";
 }
 
@@ -223,7 +220,6 @@ function dropAtCurrentLocation() {
             longitude: p.coords.longitude 
         });
         target.setAttribute("visible", true);
-        alert("Success: Cell anchored to this spot.");
     });
 }
 
@@ -232,15 +228,19 @@ function placeFreeRoam() {
     
     const fr = document.getElementById("freeRoamContainer");
     const cam = document.querySelector("#cam");
+    const floor = document.getElementById("floorMesh");
     
-    // Calculate 4 meters in front of current camera view
     const rotation = cam.getAttribute("rotation");
     const angle = (rotation.y) * (Math.PI / 180);
-    const x = 4 * Math.sin(angle);
-    const z = 4 * Math.cos(angle);
+    const x = 3 * Math.sin(angle);
+    const z = 3 * Math.cos(angle);
 
-    fr.setAttribute("position", `${-x} -1.5 ${-z}`);
+    fr.setAttribute("position", `${-x} -1.6 ${-z}`);
     fr.setAttribute("visible", true);
+
+    // Pulse Floor Mesh to confirm ground placement
+    floor.setAttribute("position", `${-x} -1.6 ${-z}`);
+    floor.setAttribute("animation", "property: material.opacity; from: 0.6; to: 0; dur: 1500; easing: easeOutQuad");
 }
 
 function adjustScale(f) {
