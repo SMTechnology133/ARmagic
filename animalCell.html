@@ -1,8 +1,13 @@
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JCE Biology AR - Final Lab Edition</title>
+    <title>JCE Biology AR - Pro Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
@@ -27,7 +32,7 @@
             font-size: 11px; border: 1px solid #00ff00;
         }
 
-        #gps-info {
+        #gps-display {
             position: absolute; left: 10px; top: 55px; padding: 10px;
             background: rgba(0,0,0,0.85); color: #00ff00; border-radius: 8px;
             font-size: 10px; border: 1px solid #00ff00; display: none;
@@ -58,16 +63,16 @@
 
 <div id="overlay" class="interactable-ui">
     <h2>JCE Biology AR</h2>
-    <p>3D Cell Lab: Final Edition</p>
+    <p>3D Environment & GPS Lab</p>
     <button class="teacher-btn" style="width:200px;font-size:16px" onclick="startApp()"> START AR</button>
 </div>
 
 <div id="ui-layer">
     <div id="status-label">MODE: HIRO MARKER</div>
 
-    <div id="gps-info">
-        <b style="color:white"> GPS DATA</b><br>
-        Lat: <span id="curr-lat">0.0000</span> | Lon: <span id="curr-lon">0.0000</span>
+    <div id="gps-display">
+        <b style="color:white"> LIVE GPS</b><br>
+        Lat: <span id="lat">0.0000</span> | Lon: <span id="lon">0.0000</span>
     </div>
     
     <div id="teacher-panel" class="interactable-ui">
@@ -86,20 +91,20 @@
 <a-scene
     id="mainScene"
     embedded
-    arjs="sourceType: webcam; debugUIEnabled: false; videoTexture: true; trackingMethod: best;"
+    arjs="sourceType: webcam; debugUIEnabled: false; videoTexture: true;"
     renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;"
     vr-mode-ui="enabled: false">
 
-    <a-camera gps-camera rotation-reader></a-camera>
+    <a-camera id="cam" gps-camera rotation-reader></a-camera>
 
     <a-entity id="animalTemplate" visible="false">
         <a-sphere radius="2.2" material="color:#4cc9f0;opacity:0.15;transparent:true;side:double"></a-sphere>
         <a-sphere radius="0.6" color="#7209b7">
-            <a-text class="cell-label" value="NUCLEUS: \n Controls cell activity" position="0 1.2 0" align="center" scale="0.6 0.6 0.6" visible="false"></a-text>
+            <a-text class="cell-label" value="NUCLEUS: \n Brain of the cell" position="0 1.2 0" align="center" scale="0.6 0.6 0.6" visible="false"></a-text>
         </a-sphere>
-        <a-entity position="1.3 0.6 0.5" rotation="45 45 0">
+        <a-entity position="1.3 0.6 0.5">
             <a-sphere radius="0.25" scale="1.5 0.6 0.6" color="#f72585"></a-sphere>
-            <a-text class="cell-label" value="MITOCHONDRIA: \n Powerhouse (ATP)" position="0 -0.5 0" align="center" scale="0.5 0.5 0.5" visible="false"></a-text>
+            <a-text class="cell-label" value="MITOCHONDRIA: \n Powerhouse" position="0 -0.5 0" align="center" scale="0.5 0.5 0.5" visible="false"></a-text>
         </a-entity>
         <a-text value="ANIMAL CELL" position="0 2.8 0" align="center" color="#00ff00" width="6"></a-text>
     </a-entity>
@@ -107,14 +112,16 @@
     <a-entity id="plantTemplate" visible="false">
         <a-box width="3.4" height="4.4" depth="3.4" material="color:#004d00;opacity:0.25;transparent:true;side:double"></a-box>
         <a-box width="1.8" height="2.8" depth="1.8" color="#ade8f4" position="0 -0.2 0" opacity="0.45">
-            <a-text class="cell-label" value="VACUOLE: \n Stores water & waste" position="0 1.8 0" align="center" scale="0.7 0.7 0.7" visible="false"></a-text>
+            <a-text class="cell-label" value="VACUOLE: \n Water Storage" position="0 1.8 0" align="center" scale="0.7 0.7 0.7" visible="false"></a-text>
         </a-box>
-        <a-entity position="-1.2 1.2 0.8" rotation="0 45 0">
+        <a-entity position="-1.2 1.2 0.8">
             <a-sphere radius="0.3" scale="1 0.4 1" color="#228b22"></a-sphere>
             <a-text class="cell-label" value="CHLOROPLAST: \n Photosynthesis" position="0 -0.6 0" align="center" scale="0.5 0.5 0.5" visible="false"></a-text>
         </a-entity>
         <a-text value="PLANT CELL" position="0 3.2 0" align="center" color="#74c69d" width="6"></a-text>
     </a-entity>
+
+    <a-ring id="reticle" color="#00ff00" radius-inner="0.4" radius-outer="0.5" rotation="-90 0 0" position="0 -1.5 -3" visible="false"></a-ring>
 
     <a-marker preset="hiro" id="markerTarget">
         <a-entity id="markerContainer" scale="0.3 0.3 0.3"></a-entity>
@@ -124,7 +131,7 @@
         <a-entity id="gpsContainer" scale="10 10 10"></a-entity>
     </a-entity>
 
-    <a-entity id="freeRoamContainer" position="0 -1 0" visible="false"></a-entity>
+    <a-entity id="freeRoamContainer" position="0 -1.5 -5" visible="false"></a-entity>
 
 </a-scene>
 
@@ -138,10 +145,10 @@ function startApp() {
     document.getElementById("overlay").style.display = "none";
     updateCellModels();
     
-    // Begin GPS tracking for the UI display
+    // GPS Real-time display
     navigator.geolocation.watchPosition(p => {
-        document.getElementById("curr-lat").textContent = p.coords.latitude.toFixed(4);
-        document.getElementById("curr-lon").textContent = p.coords.longitude.toFixed(4);
+        document.getElementById("lat").textContent = p.coords.latitude.toFixed(4);
+        document.getElementById("lon").textContent = p.coords.longitude.toFixed(4);
     }, err => console.log(err), { enableHighAccuracy: true });
 }
 
@@ -155,22 +162,20 @@ function updateCellModels() {
         const clone = tpl.cloneNode(true);
         clone.setAttribute("visible", "true");
         clone.removeAttribute("id");
+        
+        // Ensure the cloned labels inherit the current toggle state immediately
+        const internalLabels = clone.querySelectorAll('.cell-label');
+        internalLabels.forEach(l => l.setAttribute('visible', labelsVisible));
+        
         container.appendChild(clone);
     });
-    setTimeout(syncLabels, 200);
 }
 
 function toggleLabels() {
     labelsVisible = !labelsVisible;
-    syncLabels();
-}
-
-function syncLabels() {
-    // We search all entities for the label class to ensure clones are caught
-    const labels = document.querySelectorAll('.cell-label');
-    labels.forEach(l => {
-        l.setAttribute('visible', labelsVisible);
-    });
+    // Target all labels currently in the scene
+    const allLabels = document.querySelectorAll('.cell-label');
+    allLabels.forEach(l => l.setAttribute('visible', labelsVisible));
 }
 
 function toggleCellType() {
@@ -184,12 +189,12 @@ function resetApp() {
     document.getElementById("freeRoamContainer").setAttribute("scale", "1 1 1");
     
     document.getElementById("gpsTarget").setAttribute("visible", false);
-    document.getElementById("freeRoamContainer").setAttribute("visible", false);
     document.getElementById("gpsTarget").removeAttribute("gps-entity-place");
+    document.getElementById("freeRoamContainer").setAttribute("visible", false);
     
     labelsVisible = false;
-    syncLabels();
-    alert("Reset: All labels hidden and anchors cleared.");
+    toggleLabels(); // Use function to ensure cleanup
+    alert("Reset: Labels hidden & anchors cleared.");
 }
 
 function cycleMode() {
@@ -197,46 +202,54 @@ function cycleMode() {
     const m = modes[modeIndex];
     document.getElementById("status-label").textContent = "MODE: " + m;
     
-    // Toggle GPS Data Display Visibility
-    document.getElementById("gps-info").style.display = (m === "GPS ANCHOR") ? "block" : "none";
+    document.getElementById("gps-display").style.display = (m === "GPS ANCHOR") ? "block" : "none";
     document.getElementById("gps-action-btn").style.display = (m === "GPS ANCHOR") ? "block" : "none";
+    document.getElementById("reticle").setAttribute("visible", m === "FREE ROAM");
 
     document.getElementById("markerTarget").setAttribute("visible", m === "HIRO MARKER");
-    document.getElementById("gpsTarget").setAttribute("visible", m === "GPS ANCHOR");
-    document.getElementById("freeRoamContainer").setAttribute("visible", m === "FREE ROAM");
+    document.getElementById("gpsTarget").setAttribute("visible", (m === "GPS ANCHOR"));
+    document.getElementById("freeRoamContainer").setAttribute("visible", (m === "FREE ROAM"));
 
     document.getElementById("help-bar").textContent = 
-        m === "FREE ROAM" ? "Tap here to spawn cell" : 
-        m === "HIRO MARKER" ? "Point at Hiro Marker" : "Wait for coordinates & tap Anchor";
+        m === "FREE ROAM" ? "Tap bottom bar to place cell on ground" : 
+        m === "HIRO MARKER" ? "Point at Hiro Marker" : "Wait for GPS and tap Anchor";
 }
 
 function dropAtCurrentLocation() {
     navigator.geolocation.getCurrentPosition(p => {
         const target = document.getElementById("gpsTarget");
-        target.setAttribute("gps-entity-place", { latitude: p.coords.latitude, longitude: p.coords.longitude });
+        target.setAttribute("gps-entity-place", { 
+            latitude: p.coords.latitude, 
+            longitude: p.coords.longitude 
+        });
         target.setAttribute("visible", true);
+        alert("Success: Cell anchored to this spot.");
     });
 }
 
 function placeFreeRoam() {
     if (modes[modeIndex] !== "FREE ROAM") return;
+    
     const fr = document.getElementById("freeRoamContainer");
+    const cam = document.querySelector("#cam");
+    
+    // Calculate 4 meters in front of current camera view
+    const rotation = cam.getAttribute("rotation");
+    const angle = (rotation.y) * (Math.PI / 180);
+    const x = 4 * Math.sin(angle);
+    const z = 4 * Math.cos(angle);
+
+    fr.setAttribute("position", `${-x} -1.5 ${-z}`);
     fr.setAttribute("visible", true);
-    fr.setAttribute("position", "0 -1 -6");
 }
 
 function adjustScale(f) {
-    const id = (modes[modeIndex] === "HIRO MARKER") ? "markerContainer" : 
-               (modes[modeIndex] === "GPS ANCHOR") ? "gpsContainer" : "freeRoamContainer";
-    const el = document.getElementById(id);
+    const activeId = (modes[modeIndex] === "HIRO MARKER") ? "markerContainer" : 
+                     (modes[modeIndex] === "GPS ANCHOR") ? "gpsContainer" : "freeRoamContainer";
+    const el = document.getElementById(activeId);
     const s = el.getAttribute("scale");
     el.setAttribute("scale", { x: s.x * f, y: s.y * f, z: s.z * f });
 }
 </script>
 </body>
 </html>
-
-
-
-
-
